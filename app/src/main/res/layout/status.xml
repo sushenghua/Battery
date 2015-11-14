@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/batteryStatusLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Status:" />
+
+    <TextView
+        android:id="@+id/batteryStatusTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/batteryLevelLabel"
+        android:layout_marginLeft="28dp"
+        android:layout_toRightOf="@+id/manufacturerLabel"
+        android:text="null" />
+
+    <TextView
+        android:id="@+id/batteryLevelLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/batteryStatusLabel"
+        android:layout_below="@+id/batteryStatusLabel"
+        android:layout_marginTop="14dp"
+        android:text="Level:" />
+
+    <TextView
+        android:id="@+id/batteryLevelView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/batteryLevelLabel"
+        android:layout_alignBottom="@+id/batteryLevelLabel"
+        android:layout_alignLeft="@+id/batteryStatusTextView"
+        android:text="unknown" />
+
+    <TextView
+        android:id="@+id/hardwareInfoLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/batteryLevelLabel"
+        android:layout_below="@+id/batteryLevelLabel"
+        android:layout_marginTop="30dp"
+        android:text="CPU:" />
+
+    <TextView
+        android:id="@+id/cpuInfoView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/hardwareInfoLabel"
+        android:layout_alignBottom="@+id/hardwareInfoLabel"
+        android:layout_alignLeft="@+id/batteryLevelView"
+        android:text="unknown" />
+
+    <TextView
+
+        android:id="@+id/manufacturerLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/hardwareInfoLabel"
+        android:layout_below="@+id/hardwareInfoLabel"
+        android:layout_marginTop="16dp"
+        android:text="Manufacturer: " />
+
+    <TextView
+        android:id="@+id/manufacturerInfoView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/manufacturerLabel"
+        android:layout_alignBottom="@+id/manufacturerLabel"
+        android:layout_alignLeft="@+id/cpuInfoView"
+        android:text="unknown" />
+
+    <TextView
+        android:id="@+id/modelInfoLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/hardwareInfoLabel"
+        android:layout_below="@+id/hardwareInfoLabel"
+        android:layout_marginTop="54dp"
+        android:text="Model: " />
+
+    <TextView
+        android:id="@+id/modelInfoView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/modelInfoLabel"
+        android:layout_alignBottom="@+id/modelInfoLabel"
+        android:layout_alignLeft="@+id/manufacturerInfoView"
+        android:text="unknown" />
+
+    <TextView
+        android:id="@+id/buildInfoLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/modelInfoLabel"
+        android:layout_below="@+id/modelInfoLabel"
+        android:layout_marginTop="22dp"
+        android:text="Build: " />
+
+    <TextView
+        android:id="@+id/buildInfoView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/buildInfoLabel"
+        android:layout_alignLeft="@+id/modelInfoView"
+        android:text="unknown" />
+
+</RelativeLayout>
