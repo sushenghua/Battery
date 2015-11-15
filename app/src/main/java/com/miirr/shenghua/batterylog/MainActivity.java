@@ -1,5 +1,10 @@
 package com.miirr.shenghua.batterylog;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.BatteryManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -38,6 +43,9 @@ public class MainActivity extends AppCompatActivity {
 
     private SlidingTabLayout mTabs;
 
+    // broadcast receiver
+    private BroadcastReceiver batteryStatusReceiver;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
 
         final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-//        toolbar.setVisibility(View.INVISIBLE);
+        toolbar.setVisibility(View.INVISIBLE);
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
@@ -81,8 +89,50 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // inspect battery charge change
+        batteryStatusReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+
+                if (intent.getAction().equals(Intent.ACTION_BATTERY_CHANGED)) {
+
+                    int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+                    boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
+                            status == BatteryManager.BATTERY_STATUS_FULL;
+                    if (isCharging) {
+                        int chargePlug = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
+                        String chargeType = "";
+                        if (chargePlug == BatteryManager.BATTERY_PLUGGED_USB) {
+                            chargeType = "(USB)";
+                        } else if (chargePlug == BatteryManager.BATTERY_PLUGGED_AC) {
+                            chargeType = "(AC)";
+                        }
+//                        statusView.setText("Charging" + chargeType);
+                        StatusFragment sf = (StatusFragment)getSupportFragmentManager().findFragmentById(R.id.statusFragment);
+                        if (sf != null)
+                        sf.setStatusText("Charging" + chargeType);
+                    } else {
+//                        statusView.setText("Not Charged");
+                    }
+
+                    int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+                    int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+//                    levelView.setText((int) ((level / (float) scale) * 100) + "%");
+                }
+            }
+        };
+
+        IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        registerReceiver(batteryStatusReceiver, filter);
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (batteryStatusReceiver != null) {
+            unregisterReceiver(batteryStatusReceiver);
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -122,6 +172,7 @@ public class MainActivity extends AppCompatActivity {
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
             Log.d("pager pos: ", ""+position);
+            Fragment a = StatusFragment.newInstance();
 
             switch (position) {
                 case 0:
@@ -143,11 +194,11 @@ public class MainActivity extends AppCompatActivity {
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return "SECTION 1";
+                    return "电池状态";
                 case 1:
-                    return "SECTION 2";
+                    return "电池纪录";
                 case 2:
-                    return "SECTION 3";
+                    return "朋友八卦";
             }
             return null;
         }
