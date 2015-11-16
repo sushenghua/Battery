@@ -43,9 +43,6 @@ public class MainActivity extends AppCompatActivity {
 
     private SlidingTabLayout mTabs;
 
-    // broadcast receiver
-    private BroadcastReceiver batteryStatusReceiver;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -88,50 +85,6 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
-
-        // inspect battery charge change
-        batteryStatusReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-
-                if (intent.getAction().equals(Intent.ACTION_BATTERY_CHANGED)) {
-
-                    int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
-                    boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
-                            status == BatteryManager.BATTERY_STATUS_FULL;
-                    if (isCharging) {
-                        int chargePlug = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
-                        String chargeType = "";
-                        if (chargePlug == BatteryManager.BATTERY_PLUGGED_USB) {
-                            chargeType = "(USB)";
-                        } else if (chargePlug == BatteryManager.BATTERY_PLUGGED_AC) {
-                            chargeType = "(AC)";
-                        }
-//                        statusView.setText("Charging" + chargeType);
-                        StatusFragment sf = (StatusFragment)getSupportFragmentManager().findFragmentById(R.id.statusFragment);
-                        if (sf != null)
-                        sf.setStatusText("Charging" + chargeType);
-                    } else {
-//                        statusView.setText("Not Charged");
-                    }
-
-                    int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
-                    int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-//                    levelView.setText((int) ((level / (float) scale) * 100) + "%");
-                }
-            }
-        };
-
-        IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-        registerReceiver(batteryStatusReceiver, filter);
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (batteryStatusReceiver != null) {
-            unregisterReceiver(batteryStatusReceiver);
-        }
     }
 
     @Override
