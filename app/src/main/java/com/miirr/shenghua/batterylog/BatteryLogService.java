@@ -66,12 +66,12 @@ public class BatteryLogService extends Service {
             mBatteryReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
-                    onNativeBatteryChanged(intent);
+                    batteryChangeCheck(intent);
                 }
             };
             IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
             Intent intent = registerReceiver(mBatteryReceiver, filter);
-            onNativeBatteryChanged(intent);
+            batteryChangeCheck(intent);
         }
     }
 
@@ -90,10 +90,10 @@ public class BatteryLogService extends Service {
         mPlugoutTime = System.currentTimeMillis();
     }
 
-    private void onNativeBatteryChanged(Intent intent) {
-
+    private void batteryChangeCheck(Intent intent) {
+        Log.d(TAG, "batteryChangeCheck");
         if (intent.getAction().equals(Intent.ACTION_BATTERY_CHANGED)) {
-
+            
             int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
             boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
                     status == BatteryManager.BATTERY_STATUS_FULL;
@@ -117,6 +117,7 @@ public class BatteryLogService extends Service {
                             // assume the launch as the plugin
                             mPluginTime = System.currentTimeMillis();
                             mPluginPower = calculateBatteryLevel(intent);
+                            Log.d(TAG, "save plugin (launch)");
                         }
                         else { // no power supply
                             // this service launched when having power supply plugged in
@@ -127,6 +128,7 @@ public class BatteryLogService extends Service {
                     case BATTERY_NO_CHARGE: // chargeType can only be either "usb or ac charge"
                         mPluginTime = System.currentTimeMillis();
                         mPluginPower = calculateBatteryLevel(intent);
+                        Log.d(TAG, "save plugin");
                         break;
 
                     case BATTERY_USB_CHARGE:
@@ -134,8 +136,10 @@ public class BatteryLogService extends Service {
                         mPlugoutTime = System.currentTimeMillis();
                         mPlugoutPower = calculateBatteryLevel(intent);
                         if (mPlugoutPower != mPlugoutPower) { // record this charge cycle
+                            Log.d(TAG, "save charge cycle data");
                         }
                         // clear charge flag
+                        Log.d(TAG, "save plugout");
                         break;
                 }
                 mChargeType = chargeType;
