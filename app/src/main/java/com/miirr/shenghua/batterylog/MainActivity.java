@@ -85,6 +85,9 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+
+        Intent serviceIntent = new Intent(this, BatteryLogService.class);
+        startService(serviceIntent);
     }
 
     @Override
