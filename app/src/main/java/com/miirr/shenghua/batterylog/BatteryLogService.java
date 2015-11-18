@@ -39,6 +39,7 @@ public class BatteryLogService extends Service {
 
     // power
     private static final int BATTERY_UNKNOWN_POWER = -1;
+    private static int mCurrentPower = BATTERY_UNKNOWN_POWER;
     private static int mPluginPower = BATTERY_UNKNOWN_POWER;
     private static int mPlugoutPower = BATTERY_UNKNOWN_POWER;
     private static long mPluginTime = 0;
@@ -60,7 +61,7 @@ public class BatteryLogService extends Service {
 
     @Override
     public void onCreate() {
-        Log.d(TAG, "onCreate()");
+//        Log.d(TAG, "onCreate()");
 
         if (null == mBatteryReceiver) {
             mBatteryReceiver = new BroadcastReceiver() {
@@ -76,24 +77,24 @@ public class BatteryLogService extends Service {
     }
 
     public void onDestory() {
-        Log.d(TAG, "onDestory()");
+//        Log.d(TAG, "onDestory()");
         unregisterReceiver(mBatteryReceiver);
         mBatteryReceiver = null;
         super.onDestroy();
     }
 
-    private void recordPlugin() {
-        mPluginTime = System.currentTimeMillis();
+    public static int getChargeType() {
+        return mChargeType;
     }
 
-    private void recordPlugout() {
-        mPlugoutTime = System.currentTimeMillis();
+    public static int getCurrentLevel() {
+        return mCurrentPower;
     }
 
     private void batteryChangeCheck(Intent intent) {
-        Log.d(TAG, "batteryChangeCheck");
+//        Log.d(TAG, "batteryChangeCheck");
         if (intent.getAction().equals(Intent.ACTION_BATTERY_CHANGED)) {
-            
+
             int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
             boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
                     status == BatteryManager.BATTERY_STATUS_FULL;
@@ -110,13 +111,15 @@ public class BatteryLogService extends Service {
                 chargeType = BATTERY_NO_CHARGE;
             } // till here the chargeType is determined instead of BATTERY_UNDEFINED_CHARGESTATUS
 
+            mCurrentPower = calculateBatteryLevel(intent);
+
             if (chargeType != mChargeType) {
                 switch (mChargeType) {
                     case BATTERY_UNDEFINED_CHARGESTATUS: // first time of launch this service
                         if (chargeType == BATTERY_USB_CHARGE || chargeType == BATTERY_AC_CHARGE) {
                             // assume the launch as the plugin
                             mPluginTime = System.currentTimeMillis();
-                            mPluginPower = calculateBatteryLevel(intent);
+                            mPluginPower = mCurrentPower; //calculateBatteryLevel(intent);
                             Log.d(TAG, "save plugin (launch)");
                         }
                         else { // no power supply
@@ -127,14 +130,14 @@ public class BatteryLogService extends Service {
 
                     case BATTERY_NO_CHARGE: // chargeType can only be either "usb or ac charge"
                         mPluginTime = System.currentTimeMillis();
-                        mPluginPower = calculateBatteryLevel(intent);
+                        mPluginPower = mCurrentPower; //calculateBatteryLevel(intent);
                         Log.d(TAG, "save plugin");
                         break;
 
                     case BATTERY_USB_CHARGE:
                     case BATTERY_AC_CHARGE: // chargeType can only be "no charge", plugin => plugout
                         mPlugoutTime = System.currentTimeMillis();
-                        mPlugoutPower = calculateBatteryLevel(intent);
+                        mPlugoutPower = mCurrentPower; //calculateBatteryLevel(intent);
                         if (mPlugoutPower != mPlugoutPower) { // record this charge cycle
                             Log.d(TAG, "save charge cycle data");
                         }
@@ -143,8 +146,8 @@ public class BatteryLogService extends Service {
                         break;
                 }
                 mChargeType = chargeType;
-                broadcastActionBatterystatusChanged();
             }
+            broadcastActionBatterystatusChanged();
         }
     }
 

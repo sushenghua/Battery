@@ -20,6 +20,8 @@ import android.widget.TextView;
  */
 public class StatusFragment extends Fragment {
 
+    private static final String TAG = "StatusFragment";
+
     private TextView statusView = null;
     private TextView levelView = null;
 
@@ -45,7 +47,7 @@ public class StatusFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         registerBatteryStatusReceiver();
-        Log.d("StatusFragment", "------------>onCreate");
+//        Log.d(TAG, "------------>onCreate");
     }
 
     @Override
@@ -75,9 +77,7 @@ public class StatusFragment extends Fragment {
         modelInfoView.setText(Build.MODEL);
         buildInfoView.setText(Build.ID);
 
-
-        Log.d("StatusFragment", "------------>onCreateView");
-
+//        Log.d(TAG, "------------>onCreateView");
         return rootView;
     }
 
@@ -85,19 +85,19 @@ public class StatusFragment extends Fragment {
     public void onResume() {
         super.onResume();
         registerBatteryStatusReceiver();
-        Log.d("StatusFragment", "------------>onResume");
+//        Log.d(TAG, "------------>onResume");
 
     }
     @Override
     public void onPause() {
         super.onPause();
-        Log.d("StatusFragment", "------------>onPause");
+//        Log.d(TAG, "------------>onPause");
     }
     @Override
     public void onStop() {
         super.onStop();
         unregisterBatteryStatusReceiver();
-        Log.d("StatusFragment", "------------>onStop");
+//        Log.d(TAG, "------------>onStop");
     }
 
 //    public void onDestoryView() {
@@ -113,16 +113,16 @@ public class StatusFragment extends Fragment {
 //    }
 
     public void updateStatus(String text) {
-        Log.d("StatusFragment", "====>updateStatus: "+text);
+//        Log.d("StatusFragment", "====>updateStatus: "+text);
         if (statusView != null)
             statusView.setText(text);
         else {
-            Log.d("StatusFragment", "====>updateStatus: statusView null");
+//            Log.d(TAG, "====>updateStatus: statusView null");
         }
     }
 
     public void updateLevel(String text) {
-        Log.d("StatusFragment", "====>updateLevel: "+text);
+//        Log.d(TAG, "====>updateLevel: "+text);
         if (levelView != null)
             levelView.setText(text);
     }
@@ -133,46 +133,34 @@ public class StatusFragment extends Fragment {
         }
     }
 
-    private void refreshBatteryView() {
-
-    }
-
     public void registerBatteryStatusReceiver() {
         // inspect battery charge change
         batteryStatusReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-
-                if (intent.getAction().equals(Intent.ACTION_BATTERY_CHANGED)) {
-
-                    int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
-                    boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
-                            status == BatteryManager.BATTERY_STATUS_FULL;
-                    if (isCharging) {
-                        int chargePlug = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
-                        String chargeType = "";
-                        if (chargePlug == BatteryManager.BATTERY_PLUGGED_USB) {
-                            chargeType = "(USB)";
-                        } else if (chargePlug == BatteryManager.BATTERY_PLUGGED_AC) {
-                            chargeType = "(AC)";
-                        }
-//                        statusView.setText("Charging" + chargeType);
-                        updateStatus("Charging" + chargeType);
-                    } else {
-//                        statusView.setText("Not Charged");
-                        updateStatus("Not Charged");
-                    }
-
-                    int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
-                    int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-//                    levelView.setText((int) ((level / (float) scale) * 100) + "%");
-                    updateLevel( (int)((level / (float) scale) * 100) + "%" );
-                    Log.d("batteryStatusReceiver", "******>level: " + level + ", scale: " + scale);
+                if (intent.getAction().equals(BatteryLogService.ACTION_BATTERYSTATUS_CHANGED)) {
+                    updateFromService();
                 }
             }
         };
 
-        IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        IntentFilter filter = new IntentFilter(BatteryLogService.ACTION_BATTERYSTATUS_CHANGED);
         getActivity().registerReceiver(batteryStatusReceiver, filter);
+        updateFromService();
+    }
+
+    private void updateFromService() {
+        if (BatteryLogService.getChargeType() == BatteryLogService.BATTERY_AC_CHARGE) {
+            updateStatus("Charging(AC)");
+        }
+        else if (BatteryLogService.getChargeType() == BatteryLogService.BATTERY_USB_CHARGE) {
+            updateStatus("Charging(USB)");
+        }
+        else {
+            updateStatus("No Charge");
+        }
+
+        updateLevel(BatteryLogService.getCurrentLevel() + "%");
+//        Log.d(TAG, "updateFromService() level: "+BatteryLogService.getCurrentLevel());
     }
 }
