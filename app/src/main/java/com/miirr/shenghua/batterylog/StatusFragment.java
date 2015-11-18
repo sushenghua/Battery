@@ -91,15 +91,15 @@ public class StatusFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
+        unregisterBatteryStatusReceiver();
 //        Log.d(TAG, "------------>onPause");
     }
-    @Override
-    public void onStop() {
-        super.onStop();
-        unregisterBatteryStatusReceiver();
-//        Log.d(TAG, "------------>onStop");
-    }
 
+//    @Override
+//    public void onStop() {
+//        super.onStop();
+////        Log.d(TAG, "------------>onStop");
+//    }
 //    public void onDestoryView() {
 //        statusView = null;
 //        levelView = null;

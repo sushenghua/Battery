@@ -47,8 +47,9 @@ public class BatteryLogService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-
+        Log.d(TAG, "onStartCommand()");
         if (intent != null && intent.hasExtra(BATTERY_SERVICE)) {
+
             new SaveBatteryChargeCycleAsync().execute();
         }
         return START_STICKY;
