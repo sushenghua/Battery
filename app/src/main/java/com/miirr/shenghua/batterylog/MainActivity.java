@@ -50,9 +50,9 @@ public class MainActivity extends AppCompatActivity {
 
 //        findViewById(R.id.appbar).setVisibility(View.INVISIBLE);
 
-        final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        toolbar.setVisibility(View.INVISIBLE);
+//        final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+//        setSupportActionBar(toolbar);
+//        toolbar.setVisibility(View.INVISIBLE);
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
