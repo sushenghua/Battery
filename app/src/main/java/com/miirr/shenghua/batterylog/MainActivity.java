@@ -1,14 +1,11 @@
 package com.miirr.shenghua.batterylog;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
+import android.content.ContentValues;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.os.BatteryManager;
+import android.database.sqlite.SQLiteDatabase;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -88,6 +85,14 @@ public class MainActivity extends AppCompatActivity {
 
         Intent serviceIntent = new Intent(this, BatteryLogService.class);
         startService(serviceIntent);
+
+
+        // database test
+        BatteryLocalDbAdapter dbAdapter = new BatteryLocalDbAdapter(this);
+        long id = dbAdapter.insertLog(20, 12032300, 60, 12032330, 12032335, 35);
+        Log.d("DB insert test", ""+id);
+
+        Log.d("DB query test", dbAdapter.getAll());
     }
 
     @Override
