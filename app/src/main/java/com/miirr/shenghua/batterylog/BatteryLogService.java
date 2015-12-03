@@ -13,6 +13,9 @@ import android.os.BatteryManager;
 import android.os.IBinder;
 import android.util.Log;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
@@ -55,6 +58,10 @@ public class BatteryLogService extends Service {
     private static int mPlugoutPower = BATTERY_UNKNOWN_POWER;
     private static long mPluginTime = 0;
     private static long mPlugoutTime = 0;
+
+    // server response code
+    private static final int SERVER_LOGIN_REQUIRED = 200;
+    private static final int SERVER_UPLOAD_SUCCEEDED = 201;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -149,7 +156,7 @@ public class BatteryLogService extends Service {
                     case BATTERY_AC_CHARGE: // chargeType can only be "no charge", plugin => plugout
                         mPlugoutTime = System.currentTimeMillis();
                         mPlugoutPower = mCurrentPower; //calculateBatteryLevel(intent);
-                        if (mPlugoutPower != mPlugoutPower) { // record this charge cycle
+                        if (mPlugoutPower != mPluginPower) { // record this charge cycle
                             Log.d(TAG, "save charge cycle data");
                         }
                         // clear charge flag
@@ -188,28 +195,39 @@ public class BatteryLogService extends Service {
     }
 
     private void saveChargeCycleData() {
-        Log.d("BatteryPost", "postTest()");
-        try {
-
-
-            ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-            NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-            if (networkInfo != null && networkInfo.isConnected()) {
-                Log.d(TAG, "network available");
-            } else {
-                Log.d(TAG, "network unavailable");
+        boolean uploadSucceeded = false;
+        if (networkAvailable()) {
+            int code = uploadChargeLog();
+            if (code == SERVER_LOGIN_REQUIRED) {
+                if (login()) {
+                    code = uploadChargeLog();
+                    uploadSucceeded = code == SERVER_UPLOAD_SUCCEEDED;
+                }
             }
+            else {
+
+            }
+        } else {
+            Log.w(TAG, "network unavailable!");
+        }
+
+        if (!uploadSucceeded) {
+            // save to local db
+            Log.d(TAG, "save charge log to local db");
+        }
+    }
+
+    private int uploadChargeLog() {
+
+        // pick all local un-uploaded battery charge log, then generate json data, then upload
 
 
+        return SERVER_LOGIN_REQUIRED;
+    }
 
-            Uri.Builder builder = new Uri.Builder()
-                    .appendQueryParameter("login-form[login]", "demo8888")
-                    .appendQueryParameter("login-form[password]", "demo8888")
-                    .appendQueryParameter("login-form[rememberMe]", "0")
-                    .appendQueryParameter("ajax", "login-form");
-            String query = builder.build().getEncodedQuery();
-
-            
+    private boolean login() {
+        boolean loginSucceeded = false;
+        try {
             URL url = new URL("http://192.168.0.150/battery/app/frontend/web/index.php?r=user%2Fsecurity%2Ftest");
             HttpURLConnection connection = (HttpURLConnection)url.openConnection();
             connection.setReadTimeout(10000);
@@ -217,48 +235,71 @@ public class BatteryLogService extends Service {
             connection.setRequestMethod("POST");
 
             connection.setRequestProperty("Connection", "Keep-Alive");
-            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+//            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 //            connection.setRequestProperty("User-Agent", "Mozilla/5.0");
 //            connection.setRequestProperty("Accept-Language", "en-US,en;q=0.8,zh-CN;q=0.6");
 //            connection.setRequestProperty("Accept-Encoding", "gzip, deflate");
 //            connection.setFixedLengthStreamingMode(query.getBytes().length);
-//            connection.setRequestProperty("Cookie", "_csrf=24a580ad1044f30222398aae0d10ed51c8e8574f25491d15214c59637501be41a%3A2%3A%7Bi%3A0%3Bs%3A5%3A%22_csrf%22%3Bi%3A1%3Bs%3A32%3A%22AoaJhzUjpm8L_5wjsEL9HZXpGNvE6cxH%22%3B%7D");
-            connection.setRequestProperty("Cookie", "FRONTENDSESSID=10gn6j7nf8surhnvi3fbm81f61");
+//            connection.setRequestProperty("Cookie", "FRONTENDSESSID=tsemlre24rfqbv7l0vn4du8qm4");
+
             connection.setDoOutput(true);
             connection.setDoInput(true);
 
-//            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//            GZIPOutputStream gzip = new GZIPOutputStream(baos);
-////            gzip.write(body.getBytes(Charset.forName("UTF8")));
-//            gzip.write(query.getBytes());
-//            gzip.close();
-//            connection.getOutputStream().write(baos.toByteArray());
-
+            postLoginDataTo(connection);
 
             connection.connect();
 
+            int responseCode = connection.getResponseCode();
+            Log.d(TAG, "login response code: " + responseCode);
+            if (responseCode == 200) {
+                int serverResponseCode = parseServerResponseCode(connection);
+                if (serverResponseCode == 100 || serverResponseCode == 101) {
+                    String responseCookie = connection.getHeaderField("Set-Cookie");
+                    Log.d(TAG, "session cookie: " + responseCookie);
+                    // save session cookie
+                    loginSucceeded = true;
+                }
+                else {
+                    Log.d(TAG, "incorrect username or password");
+                }
+            }
+            else if (responseCode == 400) {
+                Log.d(TAG, "login failed. Bad request: " + connection.getErrorStream().toString());
+            }
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return loginSucceeded;
+    }
+
+    private void postLoginDataTo(HttpURLConnection connection) {
+        try {
             DataOutputStream os = new DataOutputStream(connection.getOutputStream());
-            os.writeBytes(query);
+            os.writeBytes(loginPostDataString());
             os.flush();
             os.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-            int responseCode = connection.getResponseCode();
+    private String loginPostDataString() {
+        Uri.Builder builder = new Uri.Builder()
+                .appendQueryParameter("login-form[login]", "demo8888")
+                .appendQueryParameter("login-form[password]", "demo8888")
+                .appendQueryParameter("login-form[rememberMe]", "0")
+                .appendQueryParameter("ajax", "login-form");
+        return builder.build().getEncodedQuery();
+    }
 
-            Log.d(TAG, "response code: "+responseCode);
-            if (responseCode == 400) {
-                Log.d(TAG, connection.getErrorStream().toString());
-            }
-
-
-//            final StringBuilder output = new StringBuilder("Request URL " + url);
-//            output.append(System.getProperty("line.separator") + "Request Parameters " + urlParameters);
-//            output.append(System.getProperty("line.separator")  + "Response Code " + responseCode);
-
-
+    private String getResponseString(HttpURLConnection connection) {
+        String result = null;
+        try {
             BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String responseCookie = connection.getHeaderField("Set-Cookie");//取到所用的Cookie
-            Log.d(TAG,"cookie: " + responseCookie);
-
             String line = "";
             StringBuilder responseOutput = new StringBuilder();
             while((line = br.readLine()) != null ) {
@@ -267,21 +308,39 @@ public class BatteryLogService extends Service {
             }
             br.close();
 
-//            output.append(System.getProperty("line.separator") + "Response " + System.getProperty("line.separator") + System.getProperty("line.separator") + responseOutput.toString());
-//            Log.d(TAG, output.toString());
-//            MainActivity.this.runOnUiThread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    outputView.setText(output);;
-//                }
-//            });
-
-
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
+            result = responseOutput.toString();
 
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        return result;
+    }
+
+    private int parseJsonResponseCode(String responseString) {
+        int code = -1;
+        try {
+            JSONObject obj = new JSONObject(responseString);
+            Log.d("JSON log: ", obj.getInt("code") + "   <<<<");
+            code = obj.getInt("code");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return code;
+    }
+
+    private int parseServerResponseCode(HttpURLConnection connection) {
+        return parseJsonResponseCode(getResponseString(connection));
+    }
+
+    private boolean networkAvailable() {
+        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+//        if (networkInfo != null && networkInfo.isConnected()) {
+//            Log.d(TAG, "network available");
+//        } else {
+//            Log.d(TAG, "network unavailable");
+//        }
+        return networkInfo != null && networkInfo.isConnected();
     }
 }
