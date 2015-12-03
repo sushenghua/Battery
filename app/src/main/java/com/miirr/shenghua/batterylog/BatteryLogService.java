@@ -5,18 +5,29 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.BatteryManager;
 import android.os.IBinder;
 import android.util.Log;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
+import java.util.Scanner;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * Created by shenghua on 11/16/15.
@@ -48,10 +59,9 @@ public class BatteryLogService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "onStartCommand()");
-        if (intent != null && intent.hasExtra(BATTERY_SERVICE)) {
-
+//        if (intent != null && intent.hasExtra(ACTION_BATTERYSTATUS_CHANGED)) {
             new SaveBatteryChargeCycleAsync().execute();
-        }
+//        }
         return START_STICKY;
     }
 
@@ -180,41 +190,93 @@ public class BatteryLogService extends Service {
     private void saveChargeCycleData() {
         Log.d("BatteryPost", "postTest()");
         try {
-            URL url = new URL("http://192.168.0.150/battery/app/frontend/web/");
-            HttpURLConnection urlConnection = (HttpURLConnection)url.openConnection();
-            urlConnection.setRequestMethod("POST");
 
-            urlConnection.setRequestProperty("USER-AGENT", "Mozilla/5.0");
-            urlConnection.setRequestProperty("ACCEPT_LANGUAGE", "en-US,en;q=0.8,zh-CN;q=0.6");
 
-            urlConnection.setDoOutput(true);
-            DataOutputStream oStream = new DataOutputStream(urlConnection.getOutputStream());
-            String urlParameters = "sn=C02G8416DRJM&cn=&locale=&caller=&num=12345";
-//            oStream.writeBytes(urlParameters);
-            oStream.flush();
-            oStream.close();
+            ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+            if (networkInfo != null && networkInfo.isConnected()) {
+                Log.d(TAG, "network available");
+            } else {
+                Log.d(TAG, "network unavailable");
+            }
 
-            int responseCode = urlConnection.getResponseCode();
 
-            final StringBuilder output = new StringBuilder("Request URL " + url);
-            output.append(System.getProperty("line.separator") + "Request Parameters " + urlParameters);
-            output.append(System.getProperty("line.separator")  + "Response Code " + responseCode);
-            BufferedReader br = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+
+            Uri.Builder builder = new Uri.Builder()
+                    .appendQueryParameter("login-form[login]", "demo8888")
+                    .appendQueryParameter("login-form[password]", "demo8888")
+                    .appendQueryParameter("login-form[rememberMe]", "0")
+                    .appendQueryParameter("ajax", "login-form");
+            String query = builder.build().getEncodedQuery();
+
+            
+            URL url = new URL("http://192.168.0.150/battery/app/frontend/web/index.php?r=user%2Fsecurity%2Ftest");
+            HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+            connection.setReadTimeout(10000);
+            connection.setConnectTimeout(15000);
+            connection.setRequestMethod("POST");
+
+            connection.setRequestProperty("Connection", "Keep-Alive");
+            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+//            connection.setRequestProperty("User-Agent", "Mozilla/5.0");
+//            connection.setRequestProperty("Accept-Language", "en-US,en;q=0.8,zh-CN;q=0.6");
+//            connection.setRequestProperty("Accept-Encoding", "gzip, deflate");
+//            connection.setFixedLengthStreamingMode(query.getBytes().length);
+//            connection.setRequestProperty("Cookie", "_csrf=24a580ad1044f30222398aae0d10ed51c8e8574f25491d15214c59637501be41a%3A2%3A%7Bi%3A0%3Bs%3A5%3A%22_csrf%22%3Bi%3A1%3Bs%3A32%3A%22AoaJhzUjpm8L_5wjsEL9HZXpGNvE6cxH%22%3B%7D");
+            connection.setRequestProperty("Cookie", "FRONTENDSESSID=10gn6j7nf8surhnvi3fbm81f61");
+            connection.setDoOutput(true);
+            connection.setDoInput(true);
+
+//            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//            GZIPOutputStream gzip = new GZIPOutputStream(baos);
+////            gzip.write(body.getBytes(Charset.forName("UTF8")));
+//            gzip.write(query.getBytes());
+//            gzip.close();
+//            connection.getOutputStream().write(baos.toByteArray());
+
+
+            connection.connect();
+
+            DataOutputStream os = new DataOutputStream(connection.getOutputStream());
+            os.writeBytes(query);
+            os.flush();
+            os.close();
+
+            int responseCode = connection.getResponseCode();
+
+            Log.d(TAG, "response code: "+responseCode);
+            if (responseCode == 400) {
+                Log.d(TAG, connection.getErrorStream().toString());
+            }
+
+
+//            final StringBuilder output = new StringBuilder("Request URL " + url);
+//            output.append(System.getProperty("line.separator") + "Request Parameters " + urlParameters);
+//            output.append(System.getProperty("line.separator")  + "Response Code " + responseCode);
+
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String responseCookie = connection.getHeaderField("Set-Cookie");//取到所用的Cookie
+            Log.d(TAG,"cookie: " + responseCookie);
+
             String line = "";
             StringBuilder responseOutput = new StringBuilder();
             while((line = br.readLine()) != null ) {
                 responseOutput.append(line);
+                Log.d(TAG, line);
             }
             br.close();
 
-            output.append(System.getProperty("line.separator") + "Response " + System.getProperty("line.separator") + System.getProperty("line.separator") + responseOutput.toString());
-
+//            output.append(System.getProperty("line.separator") + "Response " + System.getProperty("line.separator") + System.getProperty("line.separator") + responseOutput.toString());
+//            Log.d(TAG, output.toString());
 //            MainActivity.this.runOnUiThread(new Runnable() {
 //                @Override
 //                public void run() {
 //                    outputView.setText(output);;
 //                }
 //            });
+
+
         } catch (MalformedURLException e) {
             e.printStackTrace();
 
