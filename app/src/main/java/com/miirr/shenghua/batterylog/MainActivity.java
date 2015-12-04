@@ -89,10 +89,10 @@ public class MainActivity extends AppCompatActivity {
 
         // database test
         BatteryLocalDbAdapter dbAdapter = new BatteryLocalDbAdapter(this);
-        long id = dbAdapter.insertLog(20, 12032300, 60, 12032330, 12032335, 35);
-        Log.d("DB insert test", ""+id);
+//        long id = dbAdapter.insertLog(20, 12032300, 60, 12032330, 12032335, 35, true);
+//        Log.d("DB insert test", ""+id);
 
-        Log.d("DB query test", dbAdapter.getAll());
+        Log.d("DB query test", dbAdapter.getChargeLog(false));
     }
 
     @Override
