@@ -85,21 +85,22 @@ public class StatusFragment extends Fragment {
     public void onResume() {
         super.onResume();
         registerBatteryStatusReceiver();
-//        Log.d(TAG, "------------>onResume");
+        //Log.d(TAG, "------------>onResume");
 
     }
     @Override
     public void onPause() {
         super.onPause();
         unregisterBatteryStatusReceiver();
-//        Log.d(TAG, "------------>onPause");
+        //Log.d(TAG, "------------>onPause");
     }
 
-//    @Override
-//    public void onStop() {
-//        super.onStop();
-////        Log.d(TAG, "------------>onStop");
-//    }
+    @Override
+    public void onStop() {
+        super.onStop();
+        unregisterBatteryStatusReceiver();
+        //Log.d(TAG, "------------>onStop");
+    }
 //    public void onDestoryView() {
 //        statusView = null;
 //        levelView = null;
@@ -130,6 +131,7 @@ public class StatusFragment extends Fragment {
     public void unregisterBatteryStatusReceiver() {
         if (batteryStatusReceiver != null) {
             getActivity().unregisterReceiver(batteryStatusReceiver);
+            batteryStatusReceiver = null;
         }
     }
 

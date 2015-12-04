@@ -59,9 +59,8 @@ public class BatteryLogService extends Service {
     private static long mPluginTime = 0;
     private static long mPlugoutTime = 0;
 
-    // server response code
-    private static final int SERVER_LOGIN_REQUIRED = 200;
-    private static final int SERVER_UPLOAD_SUCCEEDED = 201;
+    // web server
+    private WebServerDelegate mWebServer;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -79,7 +78,9 @@ public class BatteryLogService extends Service {
 
     @Override
     public void onCreate() {
-//        Log.d(TAG, "onCreate()");
+        //Log.d(TAG, "onCreate()");
+
+        mWebServer = new WebServerDelegate(getApplicationContext());
 
         if (null == mBatteryReceiver) {
             mBatteryReceiver = new BroadcastReceiver() {
@@ -95,7 +96,7 @@ public class BatteryLogService extends Service {
     }
 
     public void onDestory() {
-//        Log.d(TAG, "onDestory()");
+        //Log.d(TAG, "onDestory()");
         unregisterReceiver(mBatteryReceiver);
         mBatteryReceiver = null;
         super.onDestroy();
@@ -110,7 +111,7 @@ public class BatteryLogService extends Service {
     }
 
     private void batteryChangeCheck(Intent intent) {
-//        Log.d(TAG, "batteryChangeCheck");
+        //Log.d(TAG, "batteryChangeCheck");
         if (intent.getAction().equals(Intent.ACTION_BATTERY_CHANGED)) {
 
             int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
@@ -188,7 +189,6 @@ public class BatteryLogService extends Service {
             return null;
         }
 
-//        @Override
         protected void onPostExecute() {
             BatteryLogService.this.stopSelf();
         }
@@ -197,11 +197,16 @@ public class BatteryLogService extends Service {
     private void saveChargeCycleData() {
         boolean uploadSucceeded = false;
         if (networkAvailable()) {
-            int code = uploadChargeLog();
-            if (code == SERVER_LOGIN_REQUIRED) {
-                if (login()) {
-                    code = uploadChargeLog();
-                    uploadSucceeded = code == SERVER_UPLOAD_SUCCEEDED;
+            int code = mWebServer.uploadChargeLog();
+            if (code == WebServerDelegate.SERVER_LOGIN_REQUIRED) {
+                Log.d(TAG, "login required");
+                if (mWebServer.login()) {
+                    Log.d(TAG, "login successful");
+                    code = mWebServer.uploadChargeLog();
+                    uploadSucceeded = code == WebServerDelegate.SERVER_UPLOAD_SUCCEEDED;
+                }
+                else {
+                    Log.d(TAG, "login failed");
                 }
             }
             else {
@@ -217,130 +222,9 @@ public class BatteryLogService extends Service {
         }
     }
 
-    private int uploadChargeLog() {
-
-        // pick all local un-uploaded battery charge log, then generate json data, then upload
-
-
-        return SERVER_LOGIN_REQUIRED;
-    }
-
-    private boolean login() {
-        boolean loginSucceeded = false;
-        try {
-            URL url = new URL("http://192.168.0.150/battery/app/frontend/web/index.php?r=user%2Fsecurity%2Ftest");
-            HttpURLConnection connection = (HttpURLConnection)url.openConnection();
-            connection.setReadTimeout(10000);
-            connection.setConnectTimeout(15000);
-            connection.setRequestMethod("POST");
-
-            connection.setRequestProperty("Connection", "Keep-Alive");
-//            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-//            connection.setRequestProperty("User-Agent", "Mozilla/5.0");
-//            connection.setRequestProperty("Accept-Language", "en-US,en;q=0.8,zh-CN;q=0.6");
-//            connection.setRequestProperty("Accept-Encoding", "gzip, deflate");
-//            connection.setFixedLengthStreamingMode(query.getBytes().length);
-//            connection.setRequestProperty("Cookie", "FRONTENDSESSID=tsemlre24rfqbv7l0vn4du8qm4");
-
-            connection.setDoOutput(true);
-            connection.setDoInput(true);
-
-            postLoginDataTo(connection);
-
-            connection.connect();
-
-            int responseCode = connection.getResponseCode();
-            Log.d(TAG, "login response code: " + responseCode);
-            if (responseCode == 200) {
-                int serverResponseCode = parseServerResponseCode(connection);
-                if (serverResponseCode == 100 || serverResponseCode == 101) {
-                    String responseCookie = connection.getHeaderField("Set-Cookie");
-                    Log.d(TAG, "session cookie: " + responseCookie);
-                    // save session cookie
-                    loginSucceeded = true;
-                }
-                else {
-                    Log.d(TAG, "incorrect username or password");
-                }
-            }
-            else if (responseCode == 400) {
-                Log.d(TAG, "login failed. Bad request: " + connection.getErrorStream().toString());
-            }
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return loginSucceeded;
-    }
-
-    private void postLoginDataTo(HttpURLConnection connection) {
-        try {
-            DataOutputStream os = new DataOutputStream(connection.getOutputStream());
-            os.writeBytes(loginPostDataString());
-            os.flush();
-            os.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private String loginPostDataString() {
-        Uri.Builder builder = new Uri.Builder()
-                .appendQueryParameter("login-form[login]", "demo8888")
-                .appendQueryParameter("login-form[password]", "demo8888")
-                .appendQueryParameter("login-form[rememberMe]", "0")
-                .appendQueryParameter("ajax", "login-form");
-        return builder.build().getEncodedQuery();
-    }
-
-    private String getResponseString(HttpURLConnection connection) {
-        String result = null;
-        try {
-            BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String line = "";
-            StringBuilder responseOutput = new StringBuilder();
-            while((line = br.readLine()) != null ) {
-                responseOutput.append(line);
-                Log.d(TAG, line);
-            }
-            br.close();
-
-            result = responseOutput.toString();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return result;
-    }
-
-    private int parseJsonResponseCode(String responseString) {
-        int code = -1;
-        try {
-            JSONObject obj = new JSONObject(responseString);
-            Log.d("JSON log: ", obj.getInt("code") + "   <<<<");
-            code = obj.getInt("code");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return code;
-    }
-
-    private int parseServerResponseCode(HttpURLConnection connection) {
-        return parseJsonResponseCode(getResponseString(connection));
-    }
-
     private boolean networkAvailable() {
         ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-//        if (networkInfo != null && networkInfo.isConnected()) {
-//            Log.d(TAG, "network available");
-//        } else {
-//            Log.d(TAG, "network unavailable");
-//        }
         return networkInfo != null && networkInfo.isConnected();
     }
 }
