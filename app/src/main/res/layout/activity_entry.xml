@@ -1,0 +1,90 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#0099cc"
+    tools:context="com.miirr.shenghua.batterylog.EntryActivity">
+
+    <!-- The primary full-screen view. This can be replaced with whatever view
+         is needed to present your content, e.g. VideoView, SurfaceView,
+         TextureView, etc. -->
+    <TextView android:id="@+id/fullscreen_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:keepScreenOn="true"
+        android:textColor="#33b5e5"
+        android:textStyle="bold"
+        android:textSize="50sp"
+        android:gravity="center"
+        android:text="@string/entry_text" />
+
+    <!-- This FrameLayout insets its children based on system windows using
+         android:fitsSystemWindows. -->
+    <LinearLayout android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:fitsSystemWindows="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="100dp">
+            <Button android:id="@+id/language_button"
+                style="?metaButtonBarButtonStyle"
+                android:textColor="@color/whiteColor"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/language_button"
+                android:layout_row="0"
+                android:layout_column="5" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <Button android:id="@+id/login_button"
+                style="?metaButtonBarButtonStyle"
+                android:textColor="@color/whiteColor"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="25dp"
+                android:text="@string/login_button"
+                android:layout_row="22"
+                android:layout_column="3" />
+
+            <Button android:id="@+id/register_button"
+                style="?metaButtonBarButtonStyle"
+                android:textColor="@color/whiteColor"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:textSize="25dp"
+                android:text="@string/register_button"
+                android:layout_row="22"
+                android:layout_column="15" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout android:id="@+id/fullscreen_content_controls"
+        style="?metaButtonBarStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:background="@color/black_overlay"
+        android:orientation="horizontal"
+        tools:ignore="UselessParent">
+
+        <Button android:id="@+id/dummy_button"
+            style="?metaButtonBarButtonStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/dummy_button" />
+
+    </LinearLayout>
+
+</FrameLayout>

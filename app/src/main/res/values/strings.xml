@@ -19,4 +19,11 @@
     <string name="permission_rationale">"Contacts permissions are needed for providing email
         completions."
     </string>
+
+    <string name="language_button">language</string>
+    <string name="login_button">Login</string>
+    <string name="register_button">Register</string>
+    <string name="title_activity_entry">EntryActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="entry_text">Speedy\nCharge</string>
 </resources>
