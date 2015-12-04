@@ -7,30 +7,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.BatteryManager;
 import android.os.IBinder;
 import android.util.Log;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.Charset;
-import java.util.Scanner;
-import java.util.zip.GZIPOutputStream;
 
 /**
  * Created by shenghua on 11/16/15.
@@ -66,7 +46,7 @@ public class BatteryLogService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "onStartCommand()");
 //        if (intent != null && intent.hasExtra(ACTION_BATTERYSTATUS_CHANGED)) {
-            new SaveBatteryChargeCycleAsync().execute();
+//            new SaveBatteryChargeCycleAsync().execute();
 //        }
         return START_STICKY;
     }
@@ -80,7 +60,8 @@ public class BatteryLogService extends Service {
     public void onCreate() {
         //Log.d(TAG, "onCreate()");
 
-        mWebServer = new WebServerDelegate(getApplicationContext());
+        PrefsStorageDelegate.setPreferences(getApplicationContext().getSharedPreferences(PrefsStorageDelegate.PREFS_NAME, Context.MODE_PRIVATE));
+        mWebServer = new WebServerDelegate();
 
         if (null == mBatteryReceiver) {
             mBatteryReceiver = new BroadcastReceiver() {
@@ -115,8 +96,8 @@ public class BatteryLogService extends Service {
         if (intent.getAction().equals(Intent.ACTION_BATTERY_CHANGED)) {
 
             int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
-            boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
-                    status == BatteryManager.BATTERY_STATUS_FULL;
+            boolean isFull = status == BatteryManager.BATTERY_STATUS_FULL;
+            boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING || isFull;
 
             int chargeType = BATTERY_UNDEFINED_CHARGESTATUS;
             if (isCharging) {
@@ -131,14 +112,21 @@ public class BatteryLogService extends Service {
             } // till here the chargeType is determined instead of BATTERY_UNDEFINED_CHARGESTATUS
 
             mCurrentPower = calculateBatteryLevel(intent);
+            long timeNow = (long)(System.currentTimeMillis() / 1000.0);
+
+            if (mCurrentPower == 100) {
+
+            }
 
             if (chargeType != mChargeType) {
                 switch (mChargeType) {
                     case BATTERY_UNDEFINED_CHARGESTATUS: // first time of launch this service
                         if (chargeType == BATTERY_USB_CHARGE || chargeType == BATTERY_AC_CHARGE) {
                             // assume the launch as the plugin
-                            mPluginTime = System.currentTimeMillis();
+                            mPluginTime = timeNow;
                             mPluginPower = mCurrentPower; //calculateBatteryLevel(intent);
+                            PrefsStorageDelegate.setPluginPower(mPluginPower);
+                            PrefsStorageDelegate.setPluginTime(mPluginTime);
                             Log.d(TAG, "save plugin (launch)");
                         }
                         else { // no power supply
@@ -148,20 +136,29 @@ public class BatteryLogService extends Service {
                         break;
 
                     case BATTERY_NO_CHARGE: // chargeType can only be either "usb or ac charge"
-                        mPluginTime = System.currentTimeMillis();
+                        mPluginTime = timeNow;
                         mPluginPower = mCurrentPower; //calculateBatteryLevel(intent);
+                        PrefsStorageDelegate.setPluginPower(mPluginPower);
+                        PrefsStorageDelegate.setPluginTime(mPluginTime);
                         Log.d(TAG, "save plugin");
                         break;
 
                     case BATTERY_USB_CHARGE:
                     case BATTERY_AC_CHARGE: // chargeType can only be "no charge", plugin => plugout
-                        mPlugoutTime = System.currentTimeMillis();
+                        mPlugoutTime = timeNow;
                         mPlugoutPower = mCurrentPower; //calculateBatteryLevel(intent);
+                        mPluginTime = PrefsStorageDelegate.getPluginTime();
+                        mPluginPower = PrefsStorageDelegate.getPluginPower();
                         if (mPlugoutPower != mPluginPower) { // record this charge cycle
                             Log.d(TAG, "save charge cycle data");
                         }
+                        new SaveBatteryChargeCycleAsync().execute();
                         // clear charge flag
                         Log.d(TAG, "save plugout");
+
+                        PrefsStorageDelegate.setPluginPower(BATTERY_UNKNOWN_POWER);
+                        PrefsStorageDelegate.setPluginTime(0);
+
                         break;
                 }
                 mChargeType = chargeType;
@@ -195,6 +192,7 @@ public class BatteryLogService extends Service {
     }
 
     private void saveChargeCycleData() {
+
         boolean uploadSucceeded = false;
         if (networkAvailable()) {
             int code = mWebServer.uploadChargeLog();
@@ -219,6 +217,8 @@ public class BatteryLogService extends Service {
         if (!uploadSucceeded) {
             // save to local db
             Log.d(TAG, "save charge log to local db");
+            BatteryLocalDbAdapter dbAdapter = new BatteryLocalDbAdapter(this);
+            dbAdapter.insertLog(mPluginPower, mPluginTime, mPlugoutPower, mPlugoutTime, mPlugoutTime, mPlugoutTime-mPluginTime, false);
         }
     }
 

@@ -1,11 +1,5 @@
 package com.miirr.shenghua.batterylog;
 
-import android.app.Activity;
-import android.app.Service;
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.util.Log;
 
@@ -38,10 +32,10 @@ public class WebServerDelegate{
     public static final int SERVER_LOGIN_REQUIRED = 200;
     public static final int SERVER_UPLOAD_SUCCEEDED = 201;
 
-    public WebServerDelegate(Context context) {
-        PreferencesStorageDelegate.setPreferences(context.getSharedPreferences(PreferencesStorageDelegate.PREFS_NAME, Context.MODE_PRIVATE));
-        PreferencesStorageDelegate.setUsername("demo8888");
-        PreferencesStorageDelegate.setPassword("demo8888");
+    public WebServerDelegate() {
+        // debug
+        PrefsStorageDelegate.setUsername("demo8888");
+        PrefsStorageDelegate.setPassword("demo8888");
     }
 
     public int uploadChargeLog() {
@@ -65,7 +59,7 @@ public class WebServerDelegate{
 //            connection.setRequestProperty("Accept-Encoding", "gzip, deflate");
 //            connection.setFixedLengthStreamingMode(query.getBytes().length);
 //            connection.setRequestProperty("Cookie", "FRONTENDSESSID=tsemlre24rfqbv7l0vn4du8qm4");
-            String cachedCookie = PreferencesStorageDelegate.getCookie();
+            String cachedCookie = PrefsStorageDelegate.getCookie();
             if (cachedCookie.length() > 0) connection.setRequestProperty("Cookie", cachedCookie);
 
             connection.setDoOutput(true);
@@ -83,7 +77,7 @@ public class WebServerDelegate{
                 if (serverResponseCode == 100 || serverResponseCode == 101) {
                     String responseCookie = connection.getHeaderField("Set-Cookie");
                     //Log.d(TAG, "session cookie: " + responseCookie);
-                    PreferencesStorageDelegate.setCookie(responseCookie);
+                    PrefsStorageDelegate.setCookie(responseCookie);
                     loginSucceeded = true;
                 }
                 else {
@@ -115,8 +109,8 @@ public class WebServerDelegate{
 
     private String getLoginPostDataString() {
         Uri.Builder builder = new Uri.Builder()
-                .appendQueryParameter(LOGIN_FORM_USER, PreferencesStorageDelegate.getUsername())
-                .appendQueryParameter(LOGIN_FORM_PASSWORD, PreferencesStorageDelegate.getPassword())
+                .appendQueryParameter(LOGIN_FORM_USER, PrefsStorageDelegate.getUsername())
+                .appendQueryParameter(LOGIN_FORM_PASSWORD, PrefsStorageDelegate.getPassword())
                 .appendQueryParameter(LOGIN_FORM_REMEMBER, "0")
                 .appendQueryParameter(LOGIN_FORM_AJAX, LOGIN_FORM_AJAX_VALUE);
         return builder.build().getEncodedQuery();
@@ -169,48 +163,4 @@ public class WebServerDelegate{
 ////        }
 //        return networkInfo != null && networkInfo.isConnected();
 //    }
-
-    static class PreferencesStorageDelegate {
-
-        private static final String PREFS_NAME = "BatteryLogData";
-        private static SharedPreferences prefs;
-
-        private static final String USER_NAME = "UserName";
-        private static final String PASSWORD = "Password";
-        private static final String COOKIE = "Cookie";
-
-        public static void setPreferences(SharedPreferences p) {
-            prefs = p;
-        }
-
-        public static String getUsername() {
-            return prefs.getString(USER_NAME, "");
-        }
-
-        public static String getPassword() {
-            return prefs.getString(PASSWORD, "");
-        }
-
-        public static String getCookie() {
-            return prefs.getString(COOKIE, "");
-        }
-
-        public static void setUsername(String username) {
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.putString(USER_NAME, username);
-            editor.commit();
-        }
-
-        public static void setPassword(String password) {
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.putString(PASSWORD, password);
-            editor.commit();
-        }
-
-        public static void setCookie(String cookie) {
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.putString(COOKIE, cookie);
-            editor.commit();
-        }
-    }
 }

@@ -46,7 +46,7 @@ public class StatusFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        registerBatteryStatusReceiver();
+        //registerBatteryStatusReceiver();
 //        Log.d(TAG, "------------>onCreate");
     }
 

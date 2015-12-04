@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
 //        long id = dbAdapter.insertLog(20, 12032300, 60, 12032330, 12032335, 35, true);
 //        Log.d("DB insert test", ""+id);
 
-        dbAdapter.markChargeLogAsUploaded(dbAdapter.getChargeLog(false));
+//        dbAdapter.markChargeLogAsUploaded(dbAdapter.getChargeLog(false));
 
         JSONArray ja = dbAdapter.getChargeLog(false);
         Log.d("DB query test count", ja.length()+"");
