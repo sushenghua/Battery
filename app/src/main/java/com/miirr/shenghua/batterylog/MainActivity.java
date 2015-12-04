@@ -21,6 +21,8 @@ import android.view.ViewGroup;
 
 import android.widget.TextView;
 
+import org.json.JSONArray;
+
 public class MainActivity extends AppCompatActivity {
 
     /**
@@ -92,7 +94,11 @@ public class MainActivity extends AppCompatActivity {
 //        long id = dbAdapter.insertLog(20, 12032300, 60, 12032330, 12032335, 35, true);
 //        Log.d("DB insert test", ""+id);
 
-        Log.d("DB query test", dbAdapter.getChargeLog(false));
+        dbAdapter.markChargeLogAsUploaded(dbAdapter.getChargeLog(false));
+
+        JSONArray ja = dbAdapter.getChargeLog(false);
+        Log.d("DB query test count", ja.length()+"");
+        Log.d("DB query test", ja.toString());
     }
 
     @Override
