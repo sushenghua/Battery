@@ -61,7 +61,7 @@ public class BatteryLogService extends Service {
         //Log.d(TAG, "onCreate()");
 
         PrefsStorageDelegate.initialize(getApplicationContext().getSharedPreferences(PrefsStorageDelegate.PREFS_NAME, Context.MODE_PRIVATE));
-        mWebServer = new WebServerDelegate();
+        mWebServer = WebServerDelegate.getInstance();
 
         if (null == mBatteryReceiver) {
             mBatteryReceiver = new BroadcastReceiver() {
@@ -194,7 +194,7 @@ public class BatteryLogService extends Service {
     private void saveChargeCycleData() {
 
         boolean uploadSucceeded = false;
-        if (networkAvailable()) {
+        if (WebServerDelegate.networkAvailable(this)) {
             int code = mWebServer.uploadChargeLog();
             if (code == WebServerDelegate.SERVER_LOGIN_REQUIRED) {
                 Log.d(TAG, "login required");
@@ -220,11 +220,5 @@ public class BatteryLogService extends Service {
             BatteryLocalDbAdapter dbAdapter = new BatteryLocalDbAdapter(this);
             dbAdapter.insertLog(mPluginPower, mPluginTime, mPlugoutPower, mPlugoutTime, mPlugoutTime, mPlugoutTime-mPluginTime, false);
         }
-    }
-
-    private boolean networkAvailable() {
-        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-        return networkInfo != null && networkInfo.isConnected();
     }
 }
