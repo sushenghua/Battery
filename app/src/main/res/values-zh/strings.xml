@@ -1,0 +1,36 @@
+<resources>
+
+    <string name="app_name">快速充电</string>
+
+    <!-- activities title -->
+    <!--<string name="title_activity_entry">入口</string>-->
+    <string name="title_activity_login">登录</string>
+    <string name="title_activity_register">注册</string>
+    <string name="title_activity_language">语言</string>
+
+    <!-- words -->
+    <string name="language">语言</string>
+    <string name="login">登录</string>
+    <string name="logout">注销</string>
+    <string name="register">注册</string>
+
+    <!-- entry activity -->
+    <string name="entry_text">欲速则达</string>
+    <string name="logo">logo</string>
+
+    <!-- language activity -->
+    <string name="save">保存</string>
+    <string name="lang_auto">系统</string>
+
+    <!-- Strings related to login -->
+    <string name="prompt_username">用户名</string>
+    <string name="prompt_password">密码</string>
+    <string name="action_sign_in">登录</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="error_invalid_email">This email address is invalid</string>
+    <string name="error_invalid_password">This password is too short</string>
+    <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="error_field_required">此项不能为空</string>
+    <string name="permission_rationale">"Contacts permissions are needed for providing email completions."</string>
+
+</resources>

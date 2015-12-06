@@ -60,7 +60,7 @@ public class BatteryLogService extends Service {
     public void onCreate() {
         //Log.d(TAG, "onCreate()");
 
-        PrefsStorageDelegate.setPreferences(getApplicationContext().getSharedPreferences(PrefsStorageDelegate.PREFS_NAME, Context.MODE_PRIVATE));
+        PrefsStorageDelegate.initialize(getApplicationContext().getSharedPreferences(PrefsStorageDelegate.PREFS_NAME, Context.MODE_PRIVATE));
         mWebServer = new WebServerDelegate();
 
         if (null == mBatteryReceiver) {

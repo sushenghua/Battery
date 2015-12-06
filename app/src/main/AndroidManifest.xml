@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.miirr.shenghua.batterylog" >
+    package="com.miirr.shenghua.batterylog">
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -16,38 +16,50 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme" >
-        <!--<activity-->
-            <!--android:name=".MainActivity"-->
-            <!--android:label="@string/app_name"-->
-            <!--android:theme="@style/AppTheme.NoActionBar" >-->
-            <!--<intent-filter>-->
-                <!--<action android:name="android.intent.action.MAIN" />-->
+        android:theme="@style/AppTheme">
 
-                <!--<category android:name="android.intent.category.LAUNCHER" />-->
-            <!--</intent-filter>-->
-        <!--</activity>-->
+        <!-- <activity -->
+        <!-- android:name=".MainActivity" -->
+        <!-- android:label="@string/app_name" -->
+        <!-- android:theme="@style/AppTheme.NoActionBar" > -->
+        <!-- <intent-filter> -->
+        <!-- <action android:name="android.intent.action.MAIN" /> -->
+
+        <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+        <!-- </intent-filter> -->
+        <!-- </activity> -->
 
         <service
             android:name=".BatteryLogService"
             android:enabled="true"
-            android:exported="false" >
+            android:exported="false">
         </service>
 
         <activity
             android:name=".LoginActivity"
-            android:label="@string/title_activity_login" >
+            android:label="@string/title_activity_login">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".EntryActivity" />
         </activity>
+
         <activity
             android:name=".EntryActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_entry"
-            android:theme="@style/AppTheme.NoActionBar" >
+            android:theme="@style/AppTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".LanguageActivity"
+            android:label="@string/title_activity_language"
+            android:theme="@style/AppTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".EntryActivity" />
         </activity>
     </application>
 

@@ -17,8 +17,14 @@ public class PrefsStorageDelegate {
     private static final String PLUGIN_POWER = "PluginPower";
     private static final String PLUGIN_TIME = "PluginTime";
 
-    public static void setPreferences(SharedPreferences p) {
-        prefs = p;
+    private static final String LANGUAGE_INDEX = "LanguageIndex";
+
+    public static boolean initialized() {
+        return prefs != null;
+    }
+
+    public static void initialize(SharedPreferences p) {
+        if (prefs == null) prefs = p;
     }
 
     public static String getUsername() {
@@ -68,6 +74,16 @@ public class PrefsStorageDelegate {
     public static void setPluginTime(long time) {
         SharedPreferences.Editor editor = prefs.edit();
         editor.putLong(PLUGIN_TIME, time);
+        editor.commit();
+    }
+
+    public static int getLanguageIndex() {
+        return prefs.getInt(LANGUAGE_INDEX, 0);
+    }
+
+    public static void setLanguageIndex(int languageIndex) {
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putInt(LANGUAGE_INDEX, languageIndex);
         editor.commit();
     }
 }

@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!--<color name="colorPrimary">#3F51B5</color>-->
+    <!--<color name="colorPrimaryDark">#303F9F</color>-->
+    <!--<color name="colorAccent">#FF4081</color>-->
+
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
@@ -7,4 +11,9 @@
     <color name="black_overlay">#66000000</color>
 
     <color name="whiteColor">#FFFFFF</color>
+    <color name="greenColor">#33BB00</color>
+    <color name="darkGreenColor">#138A36</color>
+    <color name="grayBlueColor">#9EB9E0</color>
+    <color name="darkGrayBlueColor">#7B8FAD</color>
+    <!--<color name="blueGreenColor">#48C9AE</color>-->
 </resources>
