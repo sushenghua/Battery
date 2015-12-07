@@ -1,3 +1,6 @@
+.idea/
+BatteryLog.iml
+app/app.iml
 .gradle
 /local.properties
 /.idea/workspace.xml
