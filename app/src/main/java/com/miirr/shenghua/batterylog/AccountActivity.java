@@ -256,7 +256,7 @@ public class AccountActivity extends AppCompatActivity {
                 mPasswordView.setError(getString(R.string.error_incorrect_password));
                 mPasswordView.requestFocus();
                 //String message = getResources().getString(R.string.error_incorrect_password);
-                //Toast.makeText(LoginActivity.this, message, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(AccountActivity.this, message, Toast.LENGTH_SHORT).show();
             }
         }
 
