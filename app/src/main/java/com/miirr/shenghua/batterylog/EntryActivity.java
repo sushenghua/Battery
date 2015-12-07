@@ -79,11 +79,15 @@ public class EntryActivity extends AppCompatActivity {
     }
 
     private void startLoginActivity() {
-        startActivity(new Intent(this, LoginActivity.class));
+        Intent intent = new Intent(this, AccountActivity.class);
+        intent.putExtra(AccountActivity.EXTRA_KEY, AccountActivity.LOGIN_ACTIVITY);
+        startActivity(intent);
     }
 
     private void startRegisterActivity() {
-        startActivity(new Intent(this, RegisterActivity.class));
+        Intent intent = new Intent(this, AccountActivity.class);
+        intent.putExtra(AccountActivity.EXTRA_KEY, AccountActivity.REGISTER_ACTIVITY);
+        startActivity(intent);
     }
 
     @Override
