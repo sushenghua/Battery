@@ -23,13 +23,19 @@ import java.net.URL;
 public class WebServerDelegate {
 
     private static final String TAG = "WebServerDelegate";
-    private static final String LOGIN_URL = "http://192.168.0.150/battery/app/frontend/web/index.php?r=user%2Fsecurity%2Ftest";
 
+    // login
+    private static final String LOGIN_URL = "http://192.168.0.150/battery/app/frontend/web/index.php?r=user%2Fsecurity%2Ftest";
     private static final String LOGIN_FORM_USER = "login-form[login]";
     private static final String LOGIN_FORM_PASSWORD = "login-form[password]";
     private static final String LOGIN_FORM_REMEMBER = "login-form[rememberMe]";
     private static final String LOGIN_FORM_AJAX = "ajax";
     private static final String LOGIN_FORM_AJAX_VALUE = "login-form";
+
+    // register
+    private static final String REGISTER_URL = "http://192.168.0.150/battery/app/frontend/web/index.php?r=user%2Fsecurity%2Fregister-m";
+    private static final String REGISTER_FORM_USER = "register-form[username]";
+    private static final String REGISTER_FORM_PASSWORD = "register-form[password]";
 
     // server response code
     public static final int SERVER_LOGIN_REQUIRED = 200;
@@ -56,6 +62,69 @@ public class WebServerDelegate {
     public int uploadChargeLog() {
         // pick all local un-uploaded battery charge log, then generate json data, then upload
         return SERVER_LOGIN_REQUIRED;
+    }
+
+    public boolean register(String username, String password) {
+        boolean registerSucceeded = false;
+        if (username.length() > 0 && password.length() > 0) {
+            try {
+                URL url = new URL(REGISTER_URL);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setReadTimeout(10000);
+                connection.setConnectTimeout(15000);
+                connection.setRequestMethod("POST");
+                connection.setRequestProperty("Connection", "Keep-Alive");
+                connection.setDoOutput(true);
+                connection.setDoInput(true);
+
+                postRegisterDataToConnection(username, password, connection);
+
+                connection.connect();
+
+                int responseCode = connection.getResponseCode();
+                Log.d(TAG, "register http response code: " + responseCode);
+                if (responseCode == 200) {
+                    int serverResponseCode = parseServerResponseCode(connection);
+                    Log.d(TAG, "register server response code: " + serverResponseCode);
+                    if (serverResponseCode == 100 || serverResponseCode == 101) {
+                        String responseCookie = connection.getHeaderField("Set-Cookie");
+                        //Log.d(TAG, "session cookie: " + responseCookie);
+                        PrefsStorageDelegate.setCookie(responseCookie);
+                        PrefsStorageDelegate.setUsername(username);
+                        PrefsStorageDelegate.setPassword(password);
+                        registerSucceeded = true;
+                    } else {
+                        Log.d(TAG, "incorrect username or password");
+                    }
+                } else if (responseCode == 400) {
+                    Log.d(TAG, "register failed. Bad request: " + connection.getErrorStream().toString());
+                }
+            }
+            catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return registerSucceeded;
+    }
+
+    private void postRegisterDataToConnection(String username, String password, HttpURLConnection connection) {
+        try {
+            DataOutputStream os = new DataOutputStream(connection.getOutputStream());
+            os.writeBytes(generateRegisterPostDataString(username, password));
+            os.flush();
+            os.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String generateRegisterPostDataString(String username, String password) {
+        Uri.Builder builder = new Uri.Builder()
+                .appendQueryParameter(REGISTER_FORM_USER, username)
+                .appendQueryParameter(REGISTER_FORM_PASSWORD, password);
+        return builder.build().getEncodedQuery();
     }
 
     public boolean login() {
