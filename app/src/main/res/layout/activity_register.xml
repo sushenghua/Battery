@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:gravity="center_horizontal"
     android:orientation="vertical"
-    tools:context="com.miirr.shenghua.batterylog.LoginActivity">
+    tools:context="com.miirr.shenghua.batterylog.RegisterActivity">
 
     <include
         android:id="@+id/toolbar"
@@ -22,7 +22,7 @@
 
         <!-- Login progress -->
         <ProgressBar
-            android:id="@+id/login_progress"
+            android:id="@+id/register_progress"
             style="?android:attr/progressBarStyleLarge"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -30,12 +30,12 @@
             android:visibility="gone" />
 
         <ScrollView
-            android:id="@+id/login_form"
+            android:id="@+id/register_form"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
             <LinearLayout
-                android:id="@+id/login_layout"
+                android:id="@+id/register_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
@@ -51,7 +51,7 @@
                     android:layout_height="wrap_content">
 
                     <EditText
-                        android:id="@+id/login_username"
+                        android:id="@+id/register_username"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="@string/prompt_username"
@@ -66,11 +66,11 @@
                     android:layout_height="wrap_content">
 
                     <EditText
-                        android:id="@+id/login_password"
+                        android:id="@+id/register_password"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="@string/prompt_password"
-                        android:imeActionId="@+id/login"
+
                         android:imeActionLabel="@string/action_login_short"
                         android:imeOptions="actionUnspecified"
                         android:inputType="textPassword"
@@ -79,13 +79,30 @@
 
                 </android.support.design.widget.TextInputLayout>
 
+                <android.support.design.widget.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <EditText
+                        android:id="@+id/register_password_confirm"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/prompt_password_confirm"
+
+                        android:imeActionLabel="@string/action_register"
+                        android:imeOptions="actionUnspecified"
+                        android:inputType="textPassword"
+                        android:maxLines="1"
+                        android:singleLine="true" />
+                </android.support.design.widget.TextInputLayout>
+
                 <Button
-                    android:id="@+id/login_button"
+                    android:id="@+id/register_button"
                     style="?android:textAppearanceSmall"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:text="@string/action_login"
+                    android:text="@string/action_register"
                     android:textStyle="bold" />
 
             </LinearLayout>

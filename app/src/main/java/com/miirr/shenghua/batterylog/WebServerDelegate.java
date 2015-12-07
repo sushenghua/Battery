@@ -104,6 +104,8 @@ public class WebServerDelegate {
                         String responseCookie = connection.getHeaderField("Set-Cookie");
                         //Log.d(TAG, "session cookie: " + responseCookie);
                         PrefsStorageDelegate.setCookie(responseCookie);
+                        PrefsStorageDelegate.setUsername(username);
+                        PrefsStorageDelegate.setPassword(password);
                         loginSucceeded = true;
                     } else {
                         Log.d(TAG, "incorrect username or password");

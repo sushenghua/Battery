@@ -83,8 +83,7 @@ public class EntryActivity extends AppCompatActivity {
     }
 
     private void startRegisterActivity() {
-//        Intent intent = new Intent(this, MainActivity.class);
-//        startActivity(intent);
+        startActivity(new Intent(this, RegisterActivity.class));
     }
 
     @Override

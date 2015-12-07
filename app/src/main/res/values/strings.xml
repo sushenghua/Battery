@@ -27,10 +27,13 @@
     <!-- login activity -->
     <string name="prompt_username">Username</string>
     <string name="prompt_password">Password</string>
-    <string name="action_sign_in">Login</string>
-    <string name="action_sign_in_short">Login</string>
+    <string name="prompt_password_confirm">Password Confirmation</string>
+    <string name="action_login">Login</string>
+    <string name="action_login_short">Login</string>
+    <string name="action_register">Register</string>
     <string name="error_invalid_username">Invalid username</string>
     <string name="error_invalid_password">Password requires at least 4 bits</string>
+    <string name="error_confirm_password">Inconsistent password</string>
     <string name="error_incorrect_password">Incorrect username or password</string>
     <string name="error_field_required">This field can\'t be empty</string>
     <string name="permission_rationale">"Contacts permissions are needed for providing email
