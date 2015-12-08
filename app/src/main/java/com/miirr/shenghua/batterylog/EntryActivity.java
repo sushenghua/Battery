@@ -42,6 +42,14 @@ public class EntryActivity extends AppCompatActivity {
 
         LanguageActivity.restorePreferedLanguage(this);
 
+        // --- debug ---
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        finish();
+        // -------------
+
+
         setContentView(R.layout.activity_entry);
         mVisible = true;
         mContentView = findViewById(R.id.fullscreen_content);
