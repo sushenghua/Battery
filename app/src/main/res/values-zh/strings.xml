@@ -36,4 +36,9 @@
     <string name="error_field_required">此项不能为空</string>
     <string name="permission_rationale">"Contacts permissions are needed for providing email completions."</string>
 
+    <string-array name="main_tabs">
+        <item>电池</item>
+        <item>记录</item>
+    </string-array>
+
 </resources>

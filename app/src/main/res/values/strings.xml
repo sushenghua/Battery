@@ -44,5 +44,9 @@
 
     <!-- main activity -->
     <string name="section_format">section</string>
+    <string-array name="main_tabs">
+        <item>Battery</item>
+        <item>Log</item>
+    </string-array>
 
 </resources>

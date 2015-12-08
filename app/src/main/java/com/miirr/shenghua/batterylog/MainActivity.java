@@ -2,7 +2,14 @@ package com.miirr.shenghua.batterylog;
 
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
@@ -13,6 +20,10 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ImageSpan;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -23,6 +34,9 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import org.json.JSONArray;
+
+import java.lang.ref.WeakReference;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -48,10 +62,15 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-//        findViewById(R.id.appbar).setVisibility(View.INVISIBLE);
-//        final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-//        setSupportActionBar(toolbar);
-//        toolbar.setVisibility(View.INVISIBLE);
+        // ------debug
+//        Resources res = getResources();
+//        DisplayMetrics dm = res.getDisplayMetrics();
+//        Configuration conf = res.getConfiguration();
+//        Locale newLocale = new Locale("en");
+//        Locale.setDefault(newLocale);
+//        conf.locale = newLocale;
+//        res.updateConfiguration(conf, dm);
+        // ------------
 
         // fragment adapter
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
@@ -68,8 +87,11 @@ public class MainActivity extends AppCompatActivity {
 
         // setup sliding tabs
         mTabs = (SlidingTabLayout) findViewById(R.id.tabs);
+        mTabs.setDistributeEvenly(true);
+        mTabs.setCustomTabView(R.layout.tab, R.id.tabText);
+
         mTabs.setViewPager(mViewPager);
-        //mTabs.setDistributeEvenly(true);
+
         mTabs.setCustomTabColorizer(new SlidingTabLayout.TabColorizer() {
             @Override
             public int getIndicatorColor(int position) {
@@ -77,15 +99,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-//        fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-//            }
-//        });
-
+        // launch battery log service
         Intent serviceIntent = new Intent(this, BatteryLogService.class);
         startService(serviceIntent);
 
@@ -102,33 +116,10 @@ public class MainActivity extends AppCompatActivity {
         Log.d("DB query test", ja.toString());
     }
 
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        // Inflate the menu; this adds items to the action bar if it is present.
-//        getMenuInflater().inflate(R.menu.menu_main, menu);
-//        return true;
-//    }
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//        // Handle action bar item clicks here. The action bar will
-//        // automatically handle clicks on the Home/Up button, so long
-//        // as you specify a parent activity in AndroidManifest.xml.
-//        int id = item.getItemId();
-//        //noinspection SimplifiableIfStatement
-//        if (id == R.id.actionId) {
-//            Intent intent = new Intent(this, XxActivity.class);
-//            startActivity(intent);
-//            return true;
-//        }
-//        return super.onOptionsItemSelected(item);
-//    }
-
-
-    /**
-     * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-     * one of the sections/tabs/pages.
-     */
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
+
+        int icons[] = {R.drawable.tab_battery, R.drawable.tab_log};
+        String[] tabText = getResources().getStringArray(R.array.main_tabs);
 
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
@@ -146,8 +137,6 @@ public class MainActivity extends AppCompatActivity {
                     return StatusFragment.newInstance();
                 case 1:
                     return LogFragment.newInstance();
-                case 2:
-                    return PlaceholderFragment.newInstance(position + 1);
             }
             return null;
         }
@@ -159,50 +148,68 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public CharSequence getPageTitle(int position) {
-            switch (position) {
-                case 0:
-                    return "电池状态";
-                case 1:
-                    return "电池纪录";
-                case 2:
-                    return "朋友八卦";
-            }
-            return null;
-        }
-    }
 
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
+            Drawable drawable = getResources().getDrawable(icons[position]);
+            drawable.setBounds(0, 0, 80, 80);
 
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
+            ImageSpan imageSpan = new ImageSpan(drawable) {
+                // change fm will change pos of the text
+                @Override
+                public int getSize(Paint paint, CharSequence text,
+                                   int start, int end,
+                                   Paint.FontMetricsInt fm) {
 
-        public PlaceholderFragment() {
-        }
+                    Rect rect = getCachedDrawable().getBounds();
+                    if (fm != null) {
+                        //Log.d("drawable rect", rect.toString());
+                        //Log.d("paint font metric", paint.getFontMetricsInt().toString());
+                        //Log.d("fm", fm.toString());
+                        fm.ascent = fm.top = - rect.bottom/2;
+                        fm.descent = fm.bottom = rect.bottom/2;
+                        //fm = paint.getFontMetricsInt();
+                        //Log.d("change fm", fm.toString());
+                        //Log.d("-----", "--------------");
+                    }
+                    return rect.right;
+                }
 
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
-            return rootView;
+                @Override
+                public void draw(Canvas canvas, CharSequence text, int start,
+                                 int end, float x, int top, int y, int bottom,
+                                 Paint paint) {
+                    Drawable b = getDrawable();
+                    canvas.save();
+                    //Log.d("ImageSpan", text + "");
+                    //Log.d("ImageSpan", "start: " + start + ", end: " + end + ", x: " + x + ", top: " + top + ", y: " + y + ", bottom: " + bottom);
+                    //Log.d("ImageSpan", b.getBounds().toString());
+                    //Log.d("ImageSpan", paint.getFontMetricsInt().toString());
+
+                    int transY = bottom - b.getBounds().bottom;
+                    transY -= paint.getFontMetricsInt().bottom;
+
+                    canvas.translate(x, transY);
+                    b.draw(canvas);
+                    canvas.restore();
+                }
+
+                // Redefined locally because it is a private member from DynamicDrawableSpan
+                private Drawable getCachedDrawable() {
+                    WeakReference<Drawable> wr = mDrawableRef;
+                    Drawable d = null;
+                    if (wr != null)
+                        d = wr.get();
+                    if (d == null) {
+                        d = getDrawable();
+                        mDrawableRef = new WeakReference<>(d);
+                    }
+                    return d;
+                }
+                private WeakReference<Drawable> mDrawableRef;
+            };
+
+            SpannableString spannableString = new SpannableString("  " + tabText[position]);
+            spannableString.setSpan(imageSpan, 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            return spannableString;
         }
     }
 }
