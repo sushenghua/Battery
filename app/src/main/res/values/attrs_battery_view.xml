@@ -2,7 +2,6 @@
     <declare-styleable name="BatteryView">
 
         <attr name="power" format="integer" />
-        <attr name="textDimension" format="dimension" />
 
         <attr name="scale" format="float" />
         <attr name="poleTopWidth" format="integer" />

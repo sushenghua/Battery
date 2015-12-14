@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.Point;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
@@ -13,44 +14,36 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 
+import java.lang.ref.WeakReference;
+
 public class BatteryFrontView extends View {
+    // appearance params cached from parent view (BatteryView)
+    private int centerX;
+    private int centerY;
 
-    public static final int POLE_DEFAULT_WIDTH = 512;
-    public static final int LIQUID_COVER_DEFAULT_HEIGHT = 522;
-    public static final int LIQUID_COVER_DEFAULT_H_MARGIN = 6;
-    public static final int LIQUID_COVER_DEFAULT_V_MARGIN = 2;
-    public static final int POLE_TOP_HEIGHT = 50;
-    public static final int POLE_TOP_OVERLAY = 10;
+    private int poleTopWidth;
+    private int poleWidth;
+    private int poleHeight;
+    private int liquidCoverHMargin;
+    private int liquidCoverVMargin;
+    private int liquidCoverWidth;
+    private int liquidCoverHeight;
+    private int batteryHeight;
 
-    // drawable parameters and default values
-    private float mScale = 1.0f;
-    private int mPoleTopWidth = 256;
-    private int mPoleWidth = POLE_DEFAULT_WIDTH;
-    private int mLiquidCoverHeight = LIQUID_COVER_DEFAULT_HEIGHT;
-    private int mLiquidCoverHMargin = LIQUID_COVER_DEFAULT_H_MARGIN;
-    private int mLiquidCoverVMargin = LIQUID_COVER_DEFAULT_V_MARGIN;
+    // drawables
+    private BitmapDrawable batteryPositivePoleTop;
+    private BitmapDrawable batteryPositivePoleBottom;
+    private BitmapDrawable batteryLiquidCover;
+    private BitmapDrawable batteryNegativePole;
+    private LayerDrawable batteryLayerDrawable;
 
-    private int mEntireHeight;
+    // weak ref to parent view
+    private WeakReference<BatteryView> parentView;
 
-    private BitmapDrawable mBatteryPositivePoleTop;
-    private BitmapDrawable mBatteryPositivePoleBottom;
-    private BitmapDrawable mBatteryLiquidCover;
-    private BitmapDrawable mBatteryNegativePole;
-    private LayerDrawable mBatteryLayerDrawable;
-
-    public BatteryFrontView(Context context) {
+    public BatteryFrontView(Context context, BatteryView parentView) {
         super(context);
-        init(null, 0);
-    }
-
-    public BatteryFrontView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        init(attrs, 0);
-    }
-
-    public BatteryFrontView(Context context, AttributeSet attrs, int defStyle) {
-        super(context, attrs, defStyle);
-        init(attrs, defStyle);
+        this.parentView = new WeakReference<>(parentView);
+        init();
     }
 
     private Bitmap flipImage(Bitmap src) {
@@ -59,94 +52,93 @@ public class BatteryFrontView extends View {
         return Bitmap.createBitmap(src, 0, 0, src.getWidth(), src.getHeight(), matrix, true);
     }
 
-    private void init(AttributeSet attrs, int defStyle) {
-        // Load attributes
-        final TypedArray a = getContext().obtainStyledAttributes(
-                attrs, R.styleable.BatteryView, defStyle, 0);
-        try {
-            mScale = a.getFloat(R.styleable.BatteryView_scale, mScale);
-            mPoleTopWidth = a.getInt(
-                    R.styleable.BatteryView_poleTopWidth, mPoleTopWidth);
-            mPoleWidth = a.getInt(
-                    R.styleable.BatteryView_poleWidth, mPoleWidth);
-            mLiquidCoverHeight = a.getInt(
-                    R.styleable.BatteryView_liquidCoverHeight, mLiquidCoverHeight);
-            mLiquidCoverHMargin = a.getInt(
-                    R.styleable.BatteryView_liquidCoverHMargin, mLiquidCoverHMargin);
-            mLiquidCoverVMargin = a.getInt(
-                    R.styleable.BatteryView_liquidCoverVMargin, mLiquidCoverVMargin);
-        } finally {
-            a.recycle();
-        }
+    private boolean updateCachedParams() {
+        // get parent view
+        if (this.parentView == null)
+            return false;
+        BatteryView parentView = this.parentView.get();
+        if (parentView == null)
+            return false;
+
+        // cache paras from parent view
+        centerX = parentView.getCenterX();
+        centerY = parentView.getCenterY();
+        poleTopWidth = parentView.getPoleTopWidth();
+        poleWidth = parentView.getPoleWidth();
+        poleHeight = parentView.getPoleHeight();
+        liquidCoverHMargin = parentView.getLiquidCoverHMargin();
+        liquidCoverVMargin = parentView.getLiquidCoverVMargin();
+        liquidCoverWidth = parentView.getLiquidCoverWidth();
+        liquidCoverHeight = parentView.getLiquidCoverHeight();
+        batteryHeight = parentView.getBatteryHeight();
+
+        return true;
+    }
+
+    private void init() {
+        // load appearance params
+        if (!updateCachedParams())
+            return;
 
         // bitmap
-        ImageSize poleImgSize = ImageSize.getBitmapSize(getResources(), R.drawable.battery_base);
-        mEntireHeight = POLE_TOP_HEIGHT - POLE_TOP_OVERLAY + 2 * mLiquidCoverVMargin +
-                mLiquidCoverHeight + 2 * poleImgSize.height;
-                //Log.d("------------------>", getBitmapSize(R.drawable.battery_base).toString());
-
         Bitmap bitmapOriginal = BitmapFactory.decodeResource(getResources(), R.drawable.battery_base);
         Bitmap bitmap = flipImage(bitmapOriginal);
 
         // create bitmap drawables
-        mBatteryPositivePoleTop = new BitmapDrawable(getResources(),
-                Bitmap.createScaledBitmap(bitmap, mPoleTopWidth, POLE_TOP_HEIGHT, true));
-        mBatteryPositivePoleBottom = new BitmapDrawable(getResources(),
-                Bitmap.createScaledBitmap(bitmap, mPoleWidth, poleImgSize.height, true));
+        batteryPositivePoleTop = new BitmapDrawable(getResources(),
+                Bitmap.createScaledBitmap(bitmap, poleTopWidth, BatteryView.POLE_TOP_HEIGHT, true));
+        batteryPositivePoleBottom = new BitmapDrawable(getResources(),
+                Bitmap.createScaledBitmap(bitmap, poleWidth, poleHeight, true));
         Bitmap liquidCoverBitmap = BitmapFactory.decodeResource(getResources(),
                 R.drawable.battery_liquid_cover);
-        mBatteryLiquidCover = new BitmapDrawable(getResources(),
+        batteryLiquidCover = new BitmapDrawable(getResources(),
                 Bitmap.createScaledBitmap(
                         liquidCoverBitmap,
-                        mPoleWidth - 2 * mLiquidCoverHMargin,
-                        mLiquidCoverHeight, true)
+                        liquidCoverWidth,
+                        liquidCoverHeight, true)
         );
-        mBatteryNegativePole = new BitmapDrawable(getResources(),
-                Bitmap.createScaledBitmap(bitmapOriginal, mPoleWidth, poleImgSize.height, true));
+        batteryNegativePole = new BitmapDrawable(getResources(),
+                Bitmap.createScaledBitmap(bitmapOriginal, poleWidth, poleHeight, true));
 
         // compose multiple layers
-        mBatteryLayerDrawable = new LayerDrawable(new Drawable[]{
-                mBatteryPositivePoleTop,
-                mBatteryPositivePoleBottom,
-                mBatteryLiquidCover,
-                mBatteryNegativePole});
+        batteryLayerDrawable = new LayerDrawable(new Drawable[]{
+                batteryPositivePoleTop,
+                batteryPositivePoleBottom,
+                batteryLiquidCover,
+                batteryNegativePole});
+    }
 
-        // apply scale
-        setScaleX(mScale);
-        setScaleY(mScale);
+    private void updateBounds() {
+        // positive pole top
+        int r = poleTopWidth / 2;
+        int t = centerY - batteryHeight / 2;
+        int b = t + BatteryView.POLE_TOP_HEIGHT;
+        batteryPositivePoleTop.setBounds(centerX - r, t, centerX + r, b);
+
+        // positive pole bottom
+        r = poleWidth / 2;
+        t = t + BatteryView.POLE_TOP_HEIGHT - BatteryView.POLE_TOP_OVERLAY;
+        b = t + batteryPositivePoleBottom.getIntrinsicHeight();
+        batteryPositivePoleBottom.setBounds(centerX - r, t, centerX + r, b);
+
+        // liquid cover
+        r = poleWidth / 2 - liquidCoverHMargin;
+        t = b + liquidCoverVMargin;
+        b = t + liquidCoverHeight;
+        batteryLiquidCover.setBounds(centerX - r, t, centerX + r, b);
+
+        // negative pole
+        r = poleWidth / 2;
+        t = b + liquidCoverVMargin;
+        b = t + batteryNegativePole.getIntrinsicHeight();
+        batteryNegativePole.setBounds(centerX - r, t, centerX + r, b);
     }
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        // decide center
-        boolean inPortraitOrientation = w < h;
-        int cX = w / 2;
-        int cY = h / 2;
-
-        // positive pole top
-        int r = mPoleTopWidth / 2;
-        int t = cY - mEntireHeight / 2;
-        int b = t + POLE_TOP_HEIGHT;
-        mBatteryPositivePoleTop.setBounds(cX - r, t, cX + r, b);
-
-        // positive pole bottom
-        r = mPoleWidth / 2;
-        t = t + POLE_TOP_HEIGHT - POLE_TOP_OVERLAY;
-        b = t + mBatteryPositivePoleBottom.getIntrinsicHeight();
-        mBatteryPositivePoleBottom.setBounds(cX - r, t, cX + r, b);
-
-        // liquid cover
-        r = mPoleWidth / 2 - mLiquidCoverHMargin;
-        t = b + mLiquidCoverVMargin;
-        b = t + mLiquidCoverHeight;
-        mBatteryLiquidCover.setBounds(cX - r, t, cX + r, b);
-
-        // negative pole
-        r = mPoleWidth / 2;
-        t = b + mLiquidCoverVMargin;
-        b = t + mBatteryNegativePole.getIntrinsicHeight();
-        mBatteryNegativePole.setBounds(cX - r, t, cX + r, b);
-
+        //Log.d("BatteryFrontView", "onSizeChanged");
+        if (updateCachedParams())
+            updateBounds();
         super.onSizeChanged(w, h, oldw, oldh);
     }
 
@@ -154,55 +146,6 @@ public class BatteryFrontView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         //Log.d("screen size: ", getWidth() + ", " + getHeight());
-        mBatteryLayerDrawable.draw(canvas);
-    }
-
-    public int getPoleTopWidth() {
-        return mPoleTopWidth;
-    }
-
-    public void setPoleTopWidth(int width) {
-        mPoleTopWidth = width;
-        invalidateDrawable(mBatteryPositivePoleTop);
-    }
-
-    public int getPoleWidth() {
-        return mPoleWidth;
-    }
-
-    public void setmPoleWidth(int width) {
-        mPoleWidth = width;
-        invalidateDrawable(mBatteryPositivePoleBottom);
-        invalidateDrawable(mBatteryLiquidCover);
-        invalidateDrawable(mBatteryNegativePole);
-    }
-
-    public int getLiquidCoverHeight() {
-        return mLiquidCoverHeight;
-    }
-
-    public void setLiquidCoverHeight(int height) {
-        mLiquidCoverHeight = height;
-        invalidateDrawable(mBatteryLiquidCover);
-        invalidateDrawable(mBatteryNegativePole);
-    }
-
-    public int getLiquidCoverHMargin() {
-        return mLiquidCoverHMargin;
-    }
-
-    public void setLiquidCoverHMargin(int margin) {
-        mLiquidCoverHMargin = margin;
-        invalidateDrawable(mBatteryLiquidCover);
-    }
-
-    public int getLiquidCoverVMargin() {
-        return mLiquidCoverVMargin;
-    }
-
-    public void setLiquidCoverVMargin(int margin) {
-        mLiquidCoverVMargin = margin;
-        invalidateDrawable(mBatteryLiquidCover);
-        invalidateDrawable(mBatteryNegativePole);
+        batteryLayerDrawable.draw(canvas);
     }
 }
