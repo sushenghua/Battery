@@ -1,0 +1,16 @@
+<resources>
+    <declare-styleable name="BatteryView">
+
+        <attr name="power" format="integer" />
+        <attr name="textDimension" format="dimension" />
+
+        <attr name="scale" format="float" />
+        <attr name="poleTopWidth" format="integer" />
+        <attr name="poleWidth" format="integer" />
+        <attr name="liquidCoverHeight" format="integer" />
+        <attr name="liquidCoverHMargin" format="integer" />
+        <attr name="liquidCoverVMargin" format="integer" />
+        <attr name="liquidHMargin" format="integer" />
+        <attr name="liquidVMargin" format="integer" />
+    </declare-styleable>
+</resources>
