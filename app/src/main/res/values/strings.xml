@@ -49,7 +49,7 @@
         <item>Log</item>
     </string-array>
 
-    <!-- battery status fragment -->
+    <!-- battery fragment_status fragment -->
     <string name="temperature_label">Temperature</string>
     <string name="voltage_label">Voltage</string>
     <string name="health_label">Health</string>

@@ -10,7 +10,6 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -63,7 +62,7 @@ public class StatusFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.status, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_status, container, false);
 
 //        statusView = (TextView)rootView.findViewById(R.id.batteryStatusTextView);
 //        levelView = (TextView)rootView.findViewById(R.id.batteryLevelView);

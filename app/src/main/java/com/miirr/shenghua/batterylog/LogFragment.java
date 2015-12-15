@@ -23,7 +23,7 @@ public class LogFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.log, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_log, container, false);
         WebView webView = (WebView) rootView.findViewById(R.id.webView);
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
