@@ -116,8 +116,8 @@ public class BatteryLogService extends Service {
         //Log.d(TAG, "batteryChangeCheck");
         if (intent.getAction().equals(Intent.ACTION_BATTERY_CHANGED)) {
 
-            temperature = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -100);
-            voltage = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1);
+            temperature = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, BATTERY_INVALID_TEMPERATURE);
+            voltage = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, BATTERY_INVALID_VOLTAGE);
             health = intent.getIntExtra(BatteryManager.EXTRA_HEALTH,
                     BatteryManager.BATTERY_HEALTH_UNSPECIFIED_FAILURE);
 

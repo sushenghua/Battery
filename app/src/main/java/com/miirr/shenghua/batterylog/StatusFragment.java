@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ResolveInfo;
+import android.os.BatteryManager;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -13,6 +14,11 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 
 /**
  * Created by shenghua on 11/14/15.
@@ -26,6 +32,17 @@ public class StatusFragment extends Fragment {
     private TextView voltageValue = null;
     private TextView healthValue = null;
     private TextView speedyChargeValue = null;
+
+    private ImageView temperatureIndicator = null;
+    private ImageView voltageIndicator = null;
+    private ImageView healthIndicator = null;
+    private ImageView speedyChargeIndicator = null;
+
+    // °C or °F
+    private static final int CELSIUS_TEMPERATURE = 0;
+    private static final int FAHRENHEIT_TEMPERATURE = 1;
+    private int temperatureType = CELSIUS_TEMPERATURE;
+    private int currentTemperature = BatteryLogService.BATTERY_INVALID_TEMPERATURE;
 
     // charge status
     private int chargeType = BatteryLogService.BATTERY_NO_CHARGE;
@@ -101,10 +118,16 @@ public class StatusFragment extends Fragment {
         tLabel.setText(getString(R.string.temperature_label));
 
         temperatureValue = (TextView)tInfoBar.findViewById(R.id.infoValue);
-        temperatureValue.setText("");
+        temperatureValue.setText("--");
 
-        ImageView tIndicator = (ImageView) tInfoBar.findViewById(R.id.supportIndicator);
-        tIndicator.setActivated(true);
+        temperatureIndicator = (ImageView) tInfoBar.findViewById(R.id.supportIndicator);
+
+        tInfoBar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                switchTemperatureType();
+            }
+        });
 
         // voltage
         View vInfoBar = rootView.findViewById(R.id.voltageInfo);
@@ -116,10 +139,9 @@ public class StatusFragment extends Fragment {
         vLabel.setText(getString(R.string.voltage_label));
 
         voltageValue = (TextView) vInfoBar.findViewById(R.id.infoValue);
-        voltageValue.setText("4.2 V");
+        voltageValue.setText("--");
 
-        ImageView vIndicator = (ImageView) vInfoBar.findViewById(R.id.supportIndicator);
-        vIndicator.setActivated(true);
+        voltageIndicator = (ImageView) vInfoBar.findViewById(R.id.supportIndicator);
 
         // health
         View hInfoBar = rootView.findViewById(R.id.healthInfo);
@@ -131,10 +153,9 @@ public class StatusFragment extends Fragment {
         hLabel.setText(getString(R.string.health_label));
 
         healthValue = (TextView) hInfoBar.findViewById(R.id.infoValue);
-        healthValue.setText(getString(R.string.health_value_good));
+        healthValue.setText("--");
 
-        ImageView hIndicator = (ImageView) hInfoBar.findViewById(R.id.supportIndicator);
-        hIndicator.setActivated(true);
+        healthIndicator = (ImageView) hInfoBar.findViewById(R.id.supportIndicator);
 
         // speedy charge
         View sInfoBar = rootView.findViewById(R.id.speedyChargeInfo);
@@ -146,10 +167,11 @@ public class StatusFragment extends Fragment {
         sLabel.setText(getString(R.string.speedy_charge_label));
 
         speedyChargeValue = (TextView) sInfoBar.findViewById(R.id.infoValue);
-        speedyChargeValue.setText(getString(R.string.support_value_yes));
+        speedyChargeValue.setText("--");
 
-        ImageView sIndicator = (ImageView) sInfoBar.findViewById(R.id.supportIndicator);
-        sIndicator.setActivated(true);
+        speedyChargeIndicator = (ImageView) sInfoBar.findViewById(R.id.supportIndicator);
+
+        speedyChargeSupportCheck();
     }
 
     private void initChargeStatusView(View rootView) {
@@ -161,6 +183,43 @@ public class StatusFragment extends Fragment {
 
     private void initBatteryView(View rootView) {
         batteryView = (BatteryView) rootView.findViewById(R.id.battery_view);
+    }
+
+    private void speedyChargeSupportCheck() {
+        boolean supported = false;
+
+        if (supported) {
+            speedyChargeValue.setText(getString(R.string.support_value_yes));
+            speedyChargeIndicator.setActivated(true);
+        } else {
+            speedyChargeValue.setText(getString(R.string.support_value_no));
+        }
+    }
+
+    private String getCPUInfo() {
+        String cpuInformation = "";
+        //StringBuffer sb = new StringBuffer();
+        //sb.append("abi: ").append(Build.CPU_ABI).append("\n");
+        if (new File("/proc/cpuinfo").exists()) {
+            try {
+                BufferedReader br = new BufferedReader(new FileReader(new File("/proc/cpuinfo")));
+                String aLine;
+                while ((aLine = br.readLine()) != null) {
+                    if (aLine.startsWith("Hardware")) {
+                        cpuInformation = aLine.substring(aLine.indexOf(":") + 1).trim();
+                        break;
+                    }
+                    //sb.append(aLine + "\n");
+                }
+                if (br != null) {
+                    br.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        //return sb.toString();
+        return cpuInformation;
     }
 
     @Override
@@ -219,7 +278,7 @@ public class StatusFragment extends Fragment {
     }
 
     private void updateChargeType(int newChargeType) {
-        if (newChargeType < 0)
+        if (newChargeType == BatteryLogService.BATTERY_UNDEFINED_CHARGESTATUS)
             return;
 
         if (chargeType != newChargeType) {
@@ -233,12 +292,80 @@ public class StatusFragment extends Fragment {
         }
     }
 
+    private String temperatureText(int value, int type) {
+        if (type == CELSIUS_TEMPERATURE)
+            return value / 10.0f + " " + (char) 0x00B0 + "C";
+        else if (type == FAHRENHEIT_TEMPERATURE)
+            return (value / 10.0f * 9 / 5 + 32) + " " + (char) 0x00B0 + "F";
+        else
+            return "";
+    }
+
+    private void switchTemperatureType() {
+        if (currentTemperature != BatteryLogService.BATTERY_INVALID_TEMPERATURE) {
+
+            if (temperatureType == CELSIUS_TEMPERATURE)
+                temperatureType = FAHRENHEIT_TEMPERATURE;
+            else if (temperatureType == FAHRENHEIT_TEMPERATURE)
+                temperatureType = CELSIUS_TEMPERATURE;
+
+            temperatureValue.setText(temperatureText(currentTemperature, temperatureType));
+        }
+    }
+
+    private void updateTemperature(int value) {
+        if (value != BatteryLogService.BATTERY_INVALID_TEMPERATURE) {
+            temperatureValue.setText(temperatureText(value, temperatureType));
+            temperatureIndicator.setActivated(true);
+            currentTemperature = value;
+        }
+    }
+
+    private void updateVoltage(int value) {
+        if (value != BatteryLogService.BATTERY_INVALID_VOLTAGE) {
+            voltageValue.setText(String.format("%.2f", value / 1000.0f) + " V");
+            voltageIndicator.setActivated(true);
+        }
+    }
+
+    private void updateHealth(int type) {
+        switch (type) {
+            case BatteryManager.BATTERY_HEALTH_GOOD:
+                healthValue.setText(getString(R.string.health_value_good));
+                healthIndicator.setActivated(true);
+                break;
+
+            case BatteryManager.BATTERY_HEALTH_OVERHEAT:
+                healthValue.setText(getString(R.string.health_value_overheat));
+                break;
+
+            case BatteryManager.BATTERY_HEALTH_DEAD:
+                healthValue.setText(getString(R.string.health_value_dead));
+                break;
+
+            case BatteryManager.BATTERY_HEALTH_OVER_VOLTAGE:
+                healthValue.setText(getString(R.string.health_value_over_voltage));
+                break;
+
+            case BatteryManager.BATTERY_HEALTH_COLD:
+                healthValue.setText(getString(R.string.health_value_cold));
+                break;
+
+            case BatteryManager.BATTERY_HEALTH_UNKNOWN:
+            case BatteryManager.BATTERY_HEALTH_UNSPECIFIED_FAILURE:
+                break;
+        }
+    }
+
     private void updateFromService() {
         //Log.d(TAG, "updateFromService() level: " + BatteryLogService.getCurrentLevel());
         updateChargeType(BatteryLogService.getChargeType());
 
-        temperatureValue.setText(BatteryLogService.getTemperature() / 10.0f + " " + (char) 0x00B0 + "C");
-        voltageValue.setText(String.format("%.2f", BatteryLogService.getVoltage() / 1000.0f) + " V");
+        updateTemperature(BatteryLogService.getTemperature());
+
+        updateVoltage(BatteryLogService.getVoltage());
+
+        updateHealth(BatteryLogService.getHealth());
 
         batteryView.setPower(BatteryLogService.getCurrentLevel());
     }

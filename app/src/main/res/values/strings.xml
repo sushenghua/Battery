@@ -56,6 +56,12 @@
     <string name="speedy_charge_label">Speedy Charge</string>
 
     <string name="health_value_good">Good</string>
+    <string name="health_value_overheat">Overheat</string>
+    <string name="health_value_dead">Dead</string>
+    <string name="health_value_over_voltage">Over voltage</string>
+    <string name="health_value_cold">Cold</string>
+
+
     <string name="support_value_yes">Support</string>
     <string name="support_value_no">Unsupport</string>
 
