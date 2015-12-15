@@ -2,14 +2,10 @@ package com.miirr.shenghua.batterylog;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.text.TextPaint;
+import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
@@ -53,7 +49,7 @@ public class BatteryView extends FrameLayout {
     // children views
     private BatteryLiquidView liquidView;
     private BatteryFrontView frontView;
-    private TextView textView;
+    private BatteryPowerTextView textView;
 
     public BatteryView(Context context) {
         super(context);
@@ -115,30 +111,21 @@ public class BatteryView extends FrameLayout {
         // setup children view
         liquidView = new BatteryLiquidView(getContext(), this);
         addView(liquidView);
+
         frontView = new BatteryFrontView(getContext(), this);
         addView(frontView);
-        textView = new TextView(getContext(), null, 0);
-        textView.setGravity(Gravity.CENTER);
-        textView.setTextSize(30);
+
+        textView = new BatteryPowerTextView(getContext(), this);
         addView(textView);
 
         setScale(scale);
-        setPower(60);
     }
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        //Log.d("------>", "w: " + getWidth() + ", h: " + getHeight());
+        //Log.d("------>", "w: " + w + ", h: " + h);
         //Log.d("------>", "bw: "+batteryWidth+", bh: "+batteryHeight);
         // decide center
-//        boolean inPortraitOrientation = w < h;
-//        if (inPortraitOrientation) {
-//            centerX = w / 2;
-//            centerY = (int)(h * 0.7f);
-//        } else {
-//            centerX = (int)(w * 0.8f);
-//            centerY = h / 2;
-//        }
         centerX = w / 2;
         centerY = h / 2;
         super.onSizeChanged(w, h, oldw, oldh);
@@ -155,10 +142,14 @@ public class BatteryView extends FrameLayout {
     }
 
     public void setPower(int power) {
+
         this.power = power;
+
         liquidView.setPower(power);
         liquidView.invalidate();
-        textView.setText(power + "%");
+
+        textView.setPower(power);
+        textView.invalidate();
     }
 
     public float getScale() {

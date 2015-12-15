@@ -3,7 +3,6 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     app:liquidCoverHeight="550"
-    android:background="#888"
     app:power="20">
 
 </com.miirr.shenghua.batterylog.BatteryView>
