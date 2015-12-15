@@ -9,6 +9,7 @@ import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
@@ -122,7 +123,7 @@ public class BatteryView extends FrameLayout {
         addView(textView);
 
         setScale(scale);
-        setPower(100);
+        setPower(60);
     }
 
     @Override

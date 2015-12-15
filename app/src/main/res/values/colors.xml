@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="colorPrimary">#333333</color>
+    <color name="colorPrimaryDark">#222B4E</color>
+    <color name="colorAccent">#CCCCCC</color>
+
     <!--<color name="colorPrimary">#3F51B5</color>-->
     <!--<color name="colorPrimaryDark">#303F9F</color>-->
     <!--<color name="colorAccent">#FF4081</color>-->
-
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
 
     <color name="black_overlay">#66000000</color>
 
@@ -16,4 +16,11 @@
     <color name="grayBlueColor">#9EB9E0</color>
     <color name="darkGrayBlueColor">#7B8FAD</color>
     <!--<color name="blueGreenColor">#48C9AE</color>-->
+    
+    <color name="batteryLiquidGradientDarker">#4D4D4D</color>
+    <color name="batteryLiguidGradientLighter">#FFFFFF</color>
+
+    <color name="batteryLiquidGreen">#00FF00</color>
+    <color name="batteryLiquidRed">#FF0000</color>
+    
 </resources>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:state_activated="true"
+        android:drawable="@drawable/charge_ac_green" />
+
+    <item android:drawable="@drawable/charge_ac_gray"></item>
+
+</selector>

@@ -49,4 +49,16 @@
         <item>Log</item>
     </string-array>
 
+    <!-- battery status fragment -->
+    <string name="temperature_label">Temperature</string>
+    <string name="voltage_label">Voltage</string>
+    <string name="health_label">Health</string>
+    <string name="speedy_charge_label">Speedy Charge</string>
+
+    <string name="health_value_good">Good</string>
+    <string name="support_value_yes">Support</string>
+    <string name="support_value_no">Unsupport</string>
+
+    <string name="battery_usage_app_not_found">No battery usage app found</string>
+
 </resources>

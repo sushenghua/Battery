@@ -5,8 +5,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.BatteryManager;
 import android.os.IBinder;
@@ -25,11 +23,21 @@ public class BatteryLogService extends Service {
     private static BroadcastReceiver mBatteryReceiver;
 
     // charge type
-    private static final int BATTERY_UNDEFINED_CHARGESTATUS = -1;
-    public static final int BATTERY_NO_CHARGE = 0;
-    public static final int BATTERY_AC_CHARGE = 1;
-    public static final int BATTERY_USB_CHARGE = 2;
-    private static int mChargeType = BATTERY_UNDEFINED_CHARGESTATUS;
+    public static final int BATTERY_UNDEFINED_CHARGESTATUS = -1;
+    public static final int BATTERY_NO_CHARGE = 10;
+    public static final int BATTERY_AC_CHARGE = 0;
+    public static final int BATTERY_USB_CHARGE = 1;
+    public static final int BATTERY_WIRELESS_CHARGE = 2;
+    private static int currentChargeType = BATTERY_UNDEFINED_CHARGESTATUS;
+
+    // temperature, voltage, health consts
+    public static final int BATTERY_INVALID_TEMPERATURE = -100;
+    public static final int BATTERY_INVALID_VOLTAGE = -1;
+
+    // temperature, voltage, health value
+    private static int temperature;
+    private static int voltage;
+    private static int health;
 
     // power
     private static final int BATTERY_UNKNOWN_POWER = -1;
@@ -60,7 +68,8 @@ public class BatteryLogService extends Service {
     public void onCreate() {
         //Log.d(TAG, "onCreate()");
 
-        PrefsStorageDelegate.initialize(getApplicationContext().getSharedPreferences(PrefsStorageDelegate.PREFS_NAME, Context.MODE_PRIVATE));
+        PrefsStorageDelegate.initialize(getApplicationContext().getSharedPreferences(
+                PrefsStorageDelegate.PREFS_NAME, Context.MODE_PRIVATE));
         mWebServer = WebServerDelegate.getInstance();
 
         if (null == mBatteryReceiver) {
@@ -84,31 +93,51 @@ public class BatteryLogService extends Service {
     }
 
     public static int getChargeType() {
-        return mChargeType;
+        return currentChargeType;
     }
 
     public static int getCurrentLevel() {
         return mCurrentPower;
     }
 
+    public static int getTemperature() {
+        return temperature;
+    }
+
+    public static int getVoltage() {
+        return voltage;
+    }
+
+    public static int getHealth() {
+        return health;
+    }
+
     private void batteryChangeCheck(Intent intent) {
         //Log.d(TAG, "batteryChangeCheck");
         if (intent.getAction().equals(Intent.ACTION_BATTERY_CHANGED)) {
+
+            temperature = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -100);
+            voltage = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1);
+            health = intent.getIntExtra(BatteryManager.EXTRA_HEALTH,
+                    BatteryManager.BATTERY_HEALTH_UNSPECIFIED_FAILURE);
 
             int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
             boolean isFull = status == BatteryManager.BATTERY_STATUS_FULL;
             boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING || isFull;
 
-            int chargeType = BATTERY_UNDEFINED_CHARGESTATUS;
+            int newChargeType = BATTERY_UNDEFINED_CHARGESTATUS;
             if (isCharging) {
                 int chargePlug = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
                 if (chargePlug == BatteryManager.BATTERY_PLUGGED_USB) {
-                    chargeType = BATTERY_USB_CHARGE;
+                    newChargeType = BATTERY_USB_CHARGE;
                 } else if (chargePlug == BatteryManager.BATTERY_PLUGGED_AC) {
-                    chargeType = BATTERY_AC_CHARGE;
+                    newChargeType = BATTERY_AC_CHARGE;
+                }
+                else if (chargePlug == BatteryManager.BATTERY_PLUGGED_WIRELESS) {
+                    newChargeType = BATTERY_WIRELESS_CHARGE;
                 }
             } else {
-                chargeType = BATTERY_NO_CHARGE;
+                newChargeType = BATTERY_NO_CHARGE;
             } // till here the chargeType is determined instead of BATTERY_UNDEFINED_CHARGESTATUS
 
             mCurrentPower = calculateBatteryLevel(intent);
@@ -118,10 +147,12 @@ public class BatteryLogService extends Service {
 
             }
 
-            if (chargeType != mChargeType) {
-                switch (mChargeType) {
+            if (newChargeType != currentChargeType) {
+                switch (currentChargeType) {
                     case BATTERY_UNDEFINED_CHARGESTATUS: // first time of launch this service
-                        if (chargeType == BATTERY_USB_CHARGE || chargeType == BATTERY_AC_CHARGE) {
+                        if (newChargeType == BATTERY_USB_CHARGE
+                                || newChargeType == BATTERY_AC_CHARGE
+                                || newChargeType == BATTERY_WIRELESS_CHARGE) {
                             // assume the launch as the plugin
                             mPluginTime = timeNow;
                             mPluginPower = mCurrentPower; //calculateBatteryLevel(intent);
@@ -145,6 +176,7 @@ public class BatteryLogService extends Service {
 
                     case BATTERY_USB_CHARGE:
                     case BATTERY_AC_CHARGE: // chargeType can only be "no charge", plugin => plugout
+                    case BATTERY_WIRELESS_CHARGE:
                         mPlugoutTime = timeNow;
                         mPlugoutPower = mCurrentPower; //calculateBatteryLevel(intent);
                         mPluginTime = PrefsStorageDelegate.getPluginTime();
@@ -161,7 +193,7 @@ public class BatteryLogService extends Service {
 
                         break;
                 }
-                mChargeType = chargeType;
+                currentChargeType = newChargeType;
             }
             broadcastActionBatterystatusChanged();
         }

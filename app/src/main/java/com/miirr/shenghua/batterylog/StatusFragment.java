@@ -4,16 +4,16 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Color;
-import android.os.BatteryManager;
-import android.os.Build;
+import android.content.pm.ResolveInfo;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 /**
  * Created by shenghua on 11/14/15.
@@ -24,6 +24,15 @@ public class StatusFragment extends Fragment {
 
     private TextView statusView = null;
     private TextView levelView = null;
+
+    private TextView temperatureValue = null;
+    private TextView voltageValue = null;
+    private TextView healthValue = null;
+    private TextView speedyChargeValue = null;
+
+    private int chargeType = BatteryLogService.BATTERY_NO_CHARGE;
+    private ImageView[] chargeTypeIcons = null;
+    private BatteryView batteryView = null;
 
     // broadcast receiver
     private BroadcastReceiver batteryStatusReceiver;
@@ -56,29 +65,125 @@ public class StatusFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.status, container, false);
 
-        statusView = (TextView)rootView.findViewById(R.id.batteryStatusTextView);
-        levelView = (TextView)rootView.findViewById(R.id.batteryLevelView);
-
-        TextView cpuInfoView = (TextView)rootView.findViewById(R.id.cpuInfoView);
-        TextView manufacturerInfoView = (TextView)rootView.findViewById(R.id.manufacturerInfoView);
-        TextView modelInfoView = (TextView)rootView.findViewById(R.id.modelInfoView);
-        TextView buildInfoView = (TextView)rootView.findViewById(R.id.buildInfoView);
-
-        statusView.setTextColor(Color.BLUE);
-        levelView.setTextColor(Color.BLUE);
-
-        cpuInfoView.setTextColor(Color.BLUE);
-        manufacturerInfoView.setTextColor(Color.BLUE);
-        modelInfoView.setTextColor(Color.BLUE);
-        buildInfoView.setTextColor(Color.BLUE);
-
-        cpuInfoView.setText(Build.HARDWARE);
-        manufacturerInfoView.setText(Build.MANUFACTURER);
-        modelInfoView.setText(Build.MODEL);
-        buildInfoView.setText(Build.ID);
+//        statusView = (TextView)rootView.findViewById(R.id.batteryStatusTextView);
+//        levelView = (TextView)rootView.findViewById(R.id.batteryLevelView);
+//
+//        TextView cpuInfoView = (TextView)rootView.findViewById(R.id.cpuInfoView);
+//        TextView manufacturerInfoView = (TextView)rootView.findViewById(R.id.manufacturerInfoView);
+//        TextView modelInfoView = (TextView)rootView.findViewById(R.id.modelInfoView);
+//        TextView buildInfoView = (TextView)rootView.findViewById(R.id.buildInfoView);
+//
+//        statusView.setTextColor(Color.BLUE);
+//        levelView.setTextColor(Color.BLUE);
+//
+//        cpuInfoView.setTextColor(Color.BLUE);
+//        manufacturerInfoView.setTextColor(Color.BLUE);
+//        modelInfoView.setTextColor(Color.BLUE);
+//        buildInfoView.setTextColor(Color.BLUE);
+//
+//        cpuInfoView.setText(Build.HARDWARE);
+//        manufacturerInfoView.setText(Build.MANUFACTURER);
+//        modelInfoView.setText(Build.MODEL);
+//        buildInfoView.setText(Build.ID);
 
 //        Log.d(TAG, "------------>onCreateView");
+
+        initHardwareInfoView(rootView);
+        initChargeStatusView(rootView);
+        initBatteryView(rootView);
+
+        rootView.findViewById(R.id.battery_usage_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startBatteryUsageActivity();
+            }
+        });
+
         return rootView;
+    }
+
+    private void startBatteryUsageActivity() {
+        Intent powerUsageIntent = new Intent(Intent.ACTION_POWER_USAGE_SUMMARY);
+        ResolveInfo resolveInfo = getContext().getPackageManager().resolveActivity(powerUsageIntent, 0);
+        if(resolveInfo != null){
+            startActivity(powerUsageIntent);
+        } else {
+            Toast.makeText(getContext(), R.string.battery_usage_app_not_found, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void initHardwareInfoView(View rootView) {
+
+        // temperature
+        View tInfoBar = rootView.findViewById(R.id.temperatureInfo);
+
+        ImageView tIcon = (ImageView) tInfoBar.findViewById(R.id.infoIcon);
+        tIcon.setImageResource(R.drawable.hardware_info_temperature);
+
+        TextView tLabel = (TextView) tInfoBar.findViewById(R.id.infoLabel);
+        tLabel.setText(getString(R.string.temperature_label));
+
+        temperatureValue = (TextView)tInfoBar.findViewById(R.id.infoValue);
+        temperatureValue.setText("");
+
+        ImageView tIndicator = (ImageView) tInfoBar.findViewById(R.id.supportIndicator);
+        tIndicator.setActivated(true);
+
+        // voltage
+        View vInfoBar = rootView.findViewById(R.id.voltageInfo);
+
+        ImageView vIcon = (ImageView) vInfoBar.findViewById(R.id.infoIcon);
+        vIcon.setImageResource(R.drawable.hardware_info_voltage);
+
+        TextView vLabel = (TextView) vInfoBar.findViewById(R.id.infoLabel);
+        vLabel.setText(getString(R.string.voltage_label));
+
+        voltageValue = (TextView) vInfoBar.findViewById(R.id.infoValue);
+        voltageValue.setText("4.2 V");
+
+        ImageView vIndicator = (ImageView) vInfoBar.findViewById(R.id.supportIndicator);
+        vIndicator.setActivated(true);
+
+        // health
+        View hInfoBar = rootView.findViewById(R.id.healthInfo);
+
+        ImageView hIcon = (ImageView) hInfoBar.findViewById(R.id.infoIcon);
+        hIcon.setImageResource(R.drawable.hardware_info_health);
+
+        TextView hLabel = (TextView) hInfoBar.findViewById(R.id.infoLabel);
+        hLabel.setText(getString(R.string.health_label));
+
+        healthValue = (TextView) hInfoBar.findViewById(R.id.infoValue);
+        healthValue.setText(getString(R.string.health_value_good));
+
+        ImageView hIndicator = (ImageView) hInfoBar.findViewById(R.id.supportIndicator);
+        hIndicator.setActivated(true);
+
+        // speedy charge
+        View sInfoBar = rootView.findViewById(R.id.speedyChargeInfo);
+
+        ImageView sIcon = (ImageView) sInfoBar.findViewById(R.id.infoIcon);
+        sIcon.setImageResource(R.drawable.hardware_info_speedcharge);
+
+        TextView sLabel = (TextView) sInfoBar.findViewById(R.id.infoLabel);
+        sLabel.setText(getString(R.string.speedy_charge_label));
+
+        speedyChargeValue = (TextView) sInfoBar.findViewById(R.id.infoValue);
+        speedyChargeValue.setText(getString(R.string.support_value_yes));
+
+        ImageView sIndicator = (ImageView) sInfoBar.findViewById(R.id.supportIndicator);
+        sIndicator.setActivated(true);
+    }
+
+    private void initChargeStatusView(View rootView) {
+        ImageView acIcon = (ImageView) rootView.findViewById(R.id.ac_charge_icon);
+        ImageView usbIcon = (ImageView) rootView.findViewById(R.id.usb_charge_icon);
+        ImageView wirelessIcon = (ImageView) rootView.findViewById(R.id.wireless_charge_icon);
+        chargeTypeIcons = new ImageView[] {acIcon, usbIcon, wirelessIcon};
+    }
+
+    private void initBatteryView(View rootView) {
+        batteryView = (BatteryView) rootView.findViewById(R.id.battery_view);
     }
 
     @Override
@@ -151,16 +256,37 @@ public class StatusFragment extends Fragment {
         updateFromService();
     }
 
+    private void updateChargeType(int newChargeType) {
+        if (newChargeType < 0)
+            return;
+
+        if (chargeType != newChargeType) {
+            if (chargeType != BatteryLogService.BATTERY_NO_CHARGE)
+                chargeTypeIcons[chargeType].setActivated(false);
+
+            chargeType = newChargeType;
+
+            if (chargeType != BatteryLogService.BATTERY_NO_CHARGE)
+                chargeTypeIcons[chargeType].setActivated(true);
+        }
+    }
+
     private void updateFromService() {
-        if (BatteryLogService.getChargeType() == BatteryLogService.BATTERY_AC_CHARGE) {
-            updateStatus("Charging(AC)");
-        }
-        else if (BatteryLogService.getChargeType() == BatteryLogService.BATTERY_USB_CHARGE) {
-            updateStatus("Charging(USB)");
-        }
-        else {
-            updateStatus("No Charge");
-        }
+//        if (BatteryLogService.getChargeType() == BatteryLogService.BATTERY_AC_CHARGE) {
+//            updateStatus("Charging(AC)");
+//        }
+//        else if (BatteryLogService.getChargeType() == BatteryLogService.BATTERY_USB_CHARGE) {
+//            updateStatus("Charging(USB)");
+//        }
+//        else {
+//            updateStatus("No Charge");
+//        }
+        updateChargeType(BatteryLogService.getChargeType());
+
+        temperatureValue.setText(BatteryLogService.getTemperature() / 10.0f + " " + (char) 0x00B0 + "C");
+        voltageValue.setText(String.format("%.2f", BatteryLogService.getVoltage() / 1000.0f) + " V");
+
+        batteryView.setPower(BatteryLogService.getCurrentLevel());
 
         updateLevel(BatteryLogService.getCurrentLevel() + "%");
 //        Log.d(TAG, "updateFromService() level: "+BatteryLogService.getCurrentLevel());

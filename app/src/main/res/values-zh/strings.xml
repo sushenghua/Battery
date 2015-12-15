@@ -41,4 +41,15 @@
         <item>记录</item>
     </string-array>
 
+    <string name="temperature_label">温度</string>
+    <string name="voltage_label">电压</string>
+    <string name="health_label">健康</string>
+    <string name="speedy_charge_label">快充</string>
+
+    <string name="health_value_good">良好</string>
+    <string name="support_value_yes">支持</string>
+    <string name="support_value_no">不支持</string>
+
+    <string name="battery_usage_app_not_found">未发现系统电池应用</string>
+
 </resources>

@@ -42,6 +42,7 @@ public class BatteryFrontView extends View {
 
     public BatteryFrontView(Context context, BatteryView parentView) {
         super(context);
+        if (isInEditMode()) return;
         this.parentView = new WeakReference<>(parentView);
         init();
     }

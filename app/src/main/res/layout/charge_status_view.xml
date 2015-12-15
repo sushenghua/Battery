@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <ImageView
+        android:id="@+id/charge_status_board"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/charge_status_board"/>
+
+    <ImageView
+        android:id="@+id/ac_charge_icon"
+        android:layout_width="30dp"
+        android:layout_height="wrap_content"
+        android:src="@drawable/charge_ac"
+        android:layout_marginLeft="20dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignBottom="@+id/charge_status_board" />
+
+    <ImageView
+        android:id="@+id/usb_charge_icon"
+        android:layout_width="30dp"
+        android:layout_height="wrap_content"
+        android:src="@drawable/charge_usb"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_alignBottom="@+id/charge_status_board" />
+
+    <ImageView
+        android:id="@+id/wireless_charge_icon"
+        android:layout_width="30dp"
+        android:layout_height="wrap_content"
+        android:src="@drawable/charge_wireless"
+        android:layout_marginRight="20dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignEnd="@+id/charge_status_board"
+        android:layout_alignBottom="@+id/charge_status_board" />
+</RelativeLayout>
