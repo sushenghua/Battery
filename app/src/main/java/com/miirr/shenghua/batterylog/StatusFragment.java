@@ -294,9 +294,9 @@ public class StatusFragment extends Fragment {
 
     private String temperatureText(int value, int type) {
         if (type == CELSIUS_TEMPERATURE)
-            return value / 10.0f + " " + (char) 0x00B0 + "C";
+            return String.format("%.1f", value / 10.0f) + " " + (char) 0x00B0 + "C";
         else if (type == FAHRENHEIT_TEMPERATURE)
-            return (value / 10.0f * 9 / 5 + 32) + " " + (char) 0x00B0 + "F";
+            return String.format("%.1f", (value / 10.0f * 9 / 5 + 32)) + " " + (char) 0x00B0 + "F";
         else
             return "";
     }

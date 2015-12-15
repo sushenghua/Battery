@@ -14,18 +14,18 @@
         android:layout_width="30dp"
         android:layout_height="wrap_content"
         android:src="@drawable/charge_ac"
-        android:layout_marginLeft="20dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignBottom="@+id/charge_status_board" />
+        android:layout_alignLeft="@+id/charge_status_board"
+        android:layout_alignTop="@+id/charge_status_board"
+        android:layout_alignBottom="@+id/charge_status_board"
+        android:layout_marginLeft="20dp" />
 
     <ImageView
         android:id="@+id/usb_charge_icon"
         android:layout_width="30dp"
         android:layout_height="wrap_content"
         android:src="@drawable/charge_usb"
-        android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
+        android:layout_alignTop="@+id/charge_status_board"
         android:layout_alignBottom="@+id/charge_status_board" />
 
     <ImageView
@@ -33,8 +33,9 @@
         android:layout_width="30dp"
         android:layout_height="wrap_content"
         android:src="@drawable/charge_wireless"
-        android:layout_marginRight="20dp"
-        android:layout_alignParentTop="true"
+        android:layout_alignTop="@+id/charge_status_board"
+        android:layout_alignBottom="@+id/charge_status_board"
         android:layout_alignEnd="@+id/charge_status_board"
-        android:layout_alignBottom="@+id/charge_status_board" />
+        android:layout_marginRight="20dp" />
+
 </RelativeLayout>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <ImageView
+        android:id="@+id/charge_status_board"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/charge_status_board"/>
+
+    <ImageView
+        android:id="@+id/wireless_charge_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="30dp"
+        android:src="@drawable/charge_wireless"
+        android:layout_alignTop="@+id/charge_status_board"
+        android:layout_alignLeft="@+id/charge_status_board"
+        android:layout_alignRight="@+id/charge_status_board"
+        android:layout_marginTop="10dp" />
+
+    <ImageView
+        android:id="@+id/usb_charge_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="30dp"
+        android:src="@drawable/charge_usb"
+        android:layout_alignLeft="@+id/charge_status_board"
+        android:layout_alignRight="@+id/charge_status_board"
+        android:layout_below="@+id/wireless_charge_icon"
+        android:layout_marginTop="3dp" />
+
+    <ImageView
+        android:id="@+id/ac_charge_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="30dp"
+        android:src="@drawable/charge_ac"
+        android:layout_alignBottom="@+id/charge_status_board"
+        android:layout_alignLeft="@+id/charge_status_board"
+        android:layout_alignRight="@+id/charge_status_board"
+        android:layout_marginBottom="10dp" />
+
+</RelativeLayout>

@@ -1,0 +1,36 @@
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <include
+        layout="@layout/battery_view"
+        android:id="@+id/battery_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_centerVertical="true"
+        android:layout_toRightOf="@+id/battery_view"
+        android:layout_marginLeft="50dp">
+
+        <Button
+            android:id="@+id/battery_usage_button"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/battery_usage_button" />
+
+        <include
+            layout="@layout/bar_charge_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/battery_usage_button"
+            android:layout_alignLeft="@+id/battery_usage_button"
+            android:layout_marginTop="10dp" />
+    </LinearLayout>
+
+</RelativeLayout>
