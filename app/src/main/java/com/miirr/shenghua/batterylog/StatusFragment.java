@@ -367,6 +367,6 @@ public class StatusFragment extends Fragment {
 
         updateHealth(BatteryLogService.getHealth());
 
-        batteryView.setPower(BatteryLogService.getCurrentLevel());
+        batteryView.setPower(BatteryLogService.getCurrentLevel(), true);
     }
 }

@@ -30,7 +30,7 @@ public class BatteryLiquidView extends View {
     };
 
     // power determines the height of liquid
-    private float power = 30;
+    private float power = 0;
 
     // appearance args
     private int centerX;
@@ -114,6 +114,8 @@ public class BatteryLiquidView extends View {
         else
             hue = 0;
         paint.setColorFilter(createColorFilter(hue));
+        updateBounds();
+        invalidate();
     }
 
     private ColorMatrixColorFilter createColorFilter(float hueValue) {

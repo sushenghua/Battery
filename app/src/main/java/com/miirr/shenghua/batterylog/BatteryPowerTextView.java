@@ -81,5 +81,6 @@ public class BatteryPowerTextView extends View {
     public void setPower(int p) {
         textValue = p + "%";
         invalidateTextPaintAndMeasurements();
+        invalidate();
     }
 }

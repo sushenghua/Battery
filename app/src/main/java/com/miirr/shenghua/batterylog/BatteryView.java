@@ -1,5 +1,6 @@
 package com.miirr.shenghua.batterylog;
 
+import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.util.AttributeSet;
@@ -46,6 +47,9 @@ public class BatteryView extends FrameLayout {
     private BatteryLiquidView liquidView;
     private BatteryFrontView frontView;
     private BatteryPowerTextView textView;
+
+    // animation
+    private static final int UNIT_POWER_ANIMATION_DURATION = 20;
 
     public BatteryView(Context context) {
         super(context);
@@ -138,14 +142,24 @@ public class BatteryView extends FrameLayout {
     }
 
     public void setPower(int power) {
-
         this.power = power;
-
         liquidView.setPower(power);
-        liquidView.invalidate();
-
         textView.setPower(power);
-        textView.invalidate();
+    }
+
+    public void setPower(int power, boolean animated) {
+        if (animated) {
+            int powerDeltaLen = Math.abs(power - this.power);
+            if (powerDeltaLen > 1) {
+                ObjectAnimator anim = ObjectAnimator.ofInt(this, "power", this.power, power);
+                anim.setDuration(powerDeltaLen * UNIT_POWER_ANIMATION_DURATION);
+                anim.start();
+            } else {
+                setPower(power);
+            }
+        } else {
+            setPower(power);
+        }
     }
 
     public float getScale() {
