@@ -21,14 +21,13 @@ public class StatusFragment extends Fragment {
 
     private static final String TAG = "StatusFragment";
 
-    private TextView statusView = null;
-    private TextView levelView = null;
-
+    // battery data
     private TextView temperatureValue = null;
     private TextView voltageValue = null;
     private TextView healthValue = null;
     private TextView speedyChargeValue = null;
 
+    // charge status
     private int chargeType = BatteryLogService.BATTERY_NO_CHARGE;
     private ImageView[] chargeTypeIcons = null;
     private BatteryView batteryView = null;
@@ -36,15 +35,11 @@ public class StatusFragment extends Fragment {
     // broadcast receiver
     private BroadcastReceiver batteryStatusReceiver;
 
-    /**
-     * Returns a new instance of this fragment for the given section
-     * number.
-     */
     public static StatusFragment newInstance() {
         StatusFragment fragment = new StatusFragment();
-//        Bundle args = new Bundle();
-//        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-//        fragment.setArguments(args);
+        //Bundle args = new Bundle();
+        //args.putInt(ARG_SECTION_NUMBER, sectionNumber);
+        //fragment.setArguments(args);
         return fragment;
     }
 
@@ -55,37 +50,20 @@ public class StatusFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //registerBatteryStatusReceiver();
-//        Log.d(TAG, "------------>onCreate");
+        //Log.d(TAG, "------------>onCreate");
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container,
                              Bundle savedInstanceState) {
+        //Log.d(TAG, "------------>onCreateView");
         View rootView = inflater.inflate(R.layout.fragment_status, container, false);
-
-//        statusView = (TextView)rootView.findViewById(R.id.batteryStatusTextView);
-//        levelView = (TextView)rootView.findViewById(R.id.batteryLevelView);
-//
-//        TextView cpuInfoView = (TextView)rootView.findViewById(R.id.cpuInfoView);
-//        TextView manufacturerInfoView = (TextView)rootView.findViewById(R.id.manufacturerInfoView);
-//        TextView modelInfoView = (TextView)rootView.findViewById(R.id.modelInfoView);
-//        TextView buildInfoView = (TextView)rootView.findViewById(R.id.buildInfoView);
-//
-//        statusView.setTextColor(Color.BLUE);
-//        levelView.setTextColor(Color.BLUE);
-//
-//        cpuInfoView.setTextColor(Color.BLUE);
-//        manufacturerInfoView.setTextColor(Color.BLUE);
-//        modelInfoView.setTextColor(Color.BLUE);
-//        buildInfoView.setTextColor(Color.BLUE);
 //
 //        cpuInfoView.setText(Build.HARDWARE);
 //        manufacturerInfoView.setText(Build.MANUFACTURER);
 //        modelInfoView.setText(Build.MODEL);
 //        buildInfoView.setText(Build.ID);
-
-//        Log.d(TAG, "------------>onCreateView");
 
         initHardwareInfoView(rootView);
         initChargeStatusView(rootView);
@@ -217,21 +195,6 @@ public class StatusFragment extends Fragment {
 //        super.onDestroy();
 //    }
 
-    public void updateStatus(String text) {
-//        Log.d("StatusFragment", "====>updateStatus: "+text);
-        if (statusView != null)
-            statusView.setText(text);
-        else {
-//            Log.d(TAG, "====>updateStatus: statusView null");
-        }
-    }
-
-    public void updateLevel(String text) {
-//        Log.d(TAG, "====>updateLevel: "+text);
-        if (levelView != null)
-            levelView.setText(text);
-    }
-
     public void unregisterBatteryStatusReceiver() {
         if (batteryStatusReceiver != null) {
             getActivity().unregisterReceiver(batteryStatusReceiver);
@@ -271,23 +234,12 @@ public class StatusFragment extends Fragment {
     }
 
     private void updateFromService() {
-//        if (BatteryLogService.getChargeType() == BatteryLogService.BATTERY_AC_CHARGE) {
-//            updateStatus("Charging(AC)");
-//        }
-//        else if (BatteryLogService.getChargeType() == BatteryLogService.BATTERY_USB_CHARGE) {
-//            updateStatus("Charging(USB)");
-//        }
-//        else {
-//            updateStatus("No Charge");
-//        }
+        //Log.d(TAG, "updateFromService() level: " + BatteryLogService.getCurrentLevel());
         updateChargeType(BatteryLogService.getChargeType());
 
         temperatureValue.setText(BatteryLogService.getTemperature() / 10.0f + " " + (char) 0x00B0 + "C");
         voltageValue.setText(String.format("%.2f", BatteryLogService.getVoltage() / 1000.0f) + " V");
 
         batteryView.setPower(BatteryLogService.getCurrentLevel());
-
-        updateLevel(BatteryLogService.getCurrentLevel() + "%");
-//        Log.d(TAG, "updateFromService() level: "+BatteryLogService.getCurrentLevel());
     }
 }
