@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item android:state_pressed="true">
         <shape android:shape="rectangle">
             <size android:width="150dp" android:height="40dp" />
             <corners android:radius="5dp" />
-            <solid android:color="@color/darkGrayBlueColor" />
+            <solid android:color="@color/darkGrayColor" />
         </shape>
     </item>
 
@@ -13,7 +14,7 @@
         <shape android:shape="rectangle">
             <size android:width="150dp" android:height="40dp" />
             <corners android:radius="5dp" />
-            <solid android:color="@color/grayBlueColor" />
+            <solid android:color="@color/grayColor" />
         </shape>
     </item>
 
@@ -21,7 +22,7 @@
         <shape android:shape="rectangle">
             <size android:width="150dp" android:height="40dp" />
             <corners android:radius="5dp" />
-            <solid android:color="@color/grayBlueColor" />
+            <solid android:color="@color/grayColor" />
         </shape>
     </item>
 

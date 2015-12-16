@@ -6,7 +6,7 @@
             <item>
                 <shape android:shape="oval">
                     <size android:width="40dp" android:height="40dp" />
-                    <solid android:color="#444" />
+                    <solid android:color="@color/darkGrayColor" />
                 </shape>
             </item>
             <item android:drawable="@drawable/battery_usage_green"
@@ -21,7 +21,7 @@
             <item>
                 <shape android:shape="oval">
                     <size android:width="40dp" android:height="40dp" />
-                    <solid android:color="#555" />
+                    <solid android:color="@color/grayColor" />
                 </shape>
             </item>
             <item android:drawable="@drawable/battery_usage_gray"
