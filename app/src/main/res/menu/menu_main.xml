@@ -13,11 +13,11 @@
         <!--android:title="@string/logout"-->
         <!--app:showAsAction="collapseActionView" />-->
 
-    <item
-        android:id="@+id/action_back"
-        android:title="@string/back"
-        android:orderInCategory="200"
-        app:showAsAction="always"
-        android:icon="@drawable/back"/>
+    <!--<item-->
+        <!--android:id="@+id/action_back"-->
+        <!--android:title="@string/back"-->
+        <!--android:orderInCategory="200"-->
+        <!--app:showAsAction="always"-->
+        <!--android:icon="@drawable/back"/>-->
 
 </menu>
