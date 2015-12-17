@@ -12,7 +12,6 @@ public class PrefsStorageDelegate {
 
     private static final String USER_NAME = "UserName";
     private static final String PASSWORD = "Password";
-    private static final String COOKIE = "Cookie";
 
     private static final String PLUGIN_POWER = "PluginPower";
     private static final String PLUGIN_TIME = "PluginTime";
@@ -31,18 +30,14 @@ public class PrefsStorageDelegate {
         return prefs.getString(USER_NAME, "");
     }
 
-    public static String getPassword() {
-        return prefs.getString(PASSWORD, "");
-    }
-
-    public static String getCookie() {
-        return prefs.getString(COOKIE, "");
-    }
-
     public static void setUsername(String username) {
         SharedPreferences.Editor editor = prefs.edit();
         editor.putString(USER_NAME, username);
         editor.commit();
+    }
+
+    public static String getPassword() {
+        return prefs.getString(PASSWORD, "");
     }
 
     public static void setPassword(String password) {
@@ -51,9 +46,13 @@ public class PrefsStorageDelegate {
         editor.commit();
     }
 
-    public static void setCookie(String cookie) {
+    public static String getStringValue(String key) {
+        return prefs.getString(key, "");
+    }
+
+    public static void setStringValue(String key, String value) {
         SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(COOKIE, cookie);
+        editor.putString(key, value);
         editor.commit();
     }
 
