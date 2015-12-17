@@ -153,6 +153,7 @@ public class BatteryView extends FrameLayout {
             if (powerDeltaLen > 1) {
                 ObjectAnimator anim = ObjectAnimator.ofInt(this, "power", this.power, power);
                 anim.setDuration(powerDeltaLen * UNIT_POWER_ANIMATION_DURATION);
+                anim.setStartDelay(300);
                 anim.start();
             } else {
                 setPower(power);
