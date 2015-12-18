@@ -8,7 +8,6 @@ import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONStringer;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -26,6 +25,23 @@ import java.util.List;
 public class WebServerDelegate {
 
     private static final String TAG = "WebServerDelegate";
+
+    // server operation response code
+    public static final int SERVER_LOGGED_IN_SUCCESSFULLY = 100;
+    public static final int SERVER_LOGGED_IN_ALREADY = 101;
+    public static final int SERVER_LOGIN_FAILED = 102;
+
+    public static final int SERVER_REGISTER_SUCCESSFULLY = 110;
+    public static final int SERVER_REGISTER_ACCOUNT_ALREADY_EXISTS = 111;
+    public static final int SERVER_REGISTER_USERNAME_INVALID = 112;
+    public static final int SERVER_REGISTER_PASSWORD_INVALID = 113;
+    public static final int SERVER_REGISTER_EMAIL_INVALID = 114;
+
+    public static final int SERVER_EMPTY_CSRF_TOKEN = 120;
+
+    // http response code
+    private static final int HTTP_RESPONSE_OK = 200;
+    private static final int HTTP_RESPONSE_BAD_REQUEST = 400;
 
     // csrf and session
     private static final String CSRF_URL = "http://192.168.0.150/battery/app/frontend/web/index.php?r=user%2Fsecurity%2Fcsrf-token-m";
@@ -81,36 +97,27 @@ public class WebServerDelegate {
         boolean registerSucceeded = false;
         if (username.length() > 0 && password.length() > 0) {
             try {
-                URL url = new URL(REGISTER_URL);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setReadTimeout(10000);
-                connection.setConnectTimeout(15000);
-                connection.setRequestMethod("POST");
-                connection.setRequestProperty("Connection", "Keep-Alive");
-
+                HttpURLConnection connection = createConnection(REGISTER_URL, "POST");
                 appendCookiesToConnection(connection, true, true);
-
-                connection.setDoOutput(true);
-                connection.setDoInput(true);
-
                 postRegisterDataToConnection(username, password, connection);
 
                 connection.connect();
 
                 int responseCode = connection.getResponseCode();
                 Log.d(TAG, "register http response code: " + responseCode);
-                if (responseCode == 200) {
+                if (responseCode == HTTP_RESPONSE_OK) {
                     int serverResponseCode = parseServerResponseCode(connection);
                     Log.d(TAG, "register server response code: " + serverResponseCode);
-                    if (serverResponseCode == 100 || serverResponseCode == 101) {
-                        storeCookiesFromConnection(connection);
+                    if (serverResponseCode == SERVER_REGISTER_SUCCESSFULLY
+                            || serverResponseCode == 101) {
+                        saveCookiesFromConnection(connection);
                         PrefsStorageDelegate.setUsername(username);
                         PrefsStorageDelegate.setPassword(password);
                         registerSucceeded = true;
                     } else {
                         Log.d(TAG, "incorrect username or password");
                     }
-                } else if (responseCode == 400) {
+                } else if (responseCode == HTTP_RESPONSE_BAD_REQUEST) {
                     Log.d(TAG, "register failed. Bad request: " + connection.getErrorStream().toString());
                 }
             }
@@ -149,47 +156,6 @@ public class WebServerDelegate {
         return login(false, username, password);
     }
 
-    private boolean obtainCsrfToken(boolean useCookies) {
-        boolean succeeded = false;
-        try {
-            URL url = new URL(CSRF_URL);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setReadTimeout(10000);
-            connection.setConnectTimeout(15000);
-            connection.setRequestMethod("GET");
-
-            connection.setRequestProperty("Connection", "Keep-Alive");
-            if (useCookies)
-                appendCookiesToConnection(connection, true, true);
-
-            connection.setDoInput(true);
-
-            connection.connect();
-
-            int responseCode = connection.getResponseCode();
-            Log.d(TAG, "csrf http response code: " + responseCode);
-            if (responseCode == 200) {
-                String csrf = parseServerResponseCsrf(connection);
-                if (csrf != null) {
-                    PrefsStorageDelegate.setStringValue(CSRF_TOKEN_STORE_NAME, csrf);
-                    Log.d(TAG, "save csrf token: " + csrf);
-                    storeCookiesFromConnection(connection);
-                    succeeded = true;
-                } else {
-                    Log.d(TAG, "get csrf failed");
-                }
-            } else if (responseCode == 400) {
-                Log.d(TAG, "csrf failed. Bad request: " + connection.getErrorStream().toString());
-            }
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return succeeded;
-    }
-
     public boolean login(boolean useSession, String username, String password) {
         boolean loginSucceeded = false;
 
@@ -198,23 +164,9 @@ public class WebServerDelegate {
 
         if ( useSession || (username.length() > 0 && password.length() > 0) ) {
             try {
-                URL url = new URL(LOGIN_URL);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setReadTimeout(10000);
-                connection.setConnectTimeout(15000);
-                connection.setRequestMethod("POST");
-
-                connection.setRequestProperty("Connection", "Keep-Alive");
-                //connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-                //connection.setRequestProperty("User-Agent", "Mozilla/5.0");
-                //connection.setRequestProperty("Accept-Language", "en-US,en;q=0.8,zh-CN;q=0.6");
-                //connection.setRequestProperty("Accept-Encoding", "gzip, deflate");
-                //connection.setFixedLengthStreamingMode(query.getBytes().length);
+                HttpURLConnection connection = createConnection(LOGIN_URL, "POST");
 
                 appendCookiesToConnection(connection, true, useSession);
-
-                connection.setDoOutput(true);
-                connection.setDoInput(true);
 
                 postLoginDataToConnection(username, password, connection);
 
@@ -222,18 +174,18 @@ public class WebServerDelegate {
 
                 int responseCode = connection.getResponseCode();
                 Log.d(TAG, "login http response code: " + responseCode);
-                if (responseCode == 200) {
+                if (responseCode == HTTP_RESPONSE_OK) {
                     int serverResponseCode = parseServerResponseCode(connection);
                     Log.d(TAG, "login server response code: " + serverResponseCode);
-                    if (serverResponseCode == 100 || serverResponseCode == 101) {
-                        storeCookiesFromConnection(connection);
-                        PrefsStorageDelegate.setUsername(username);
-                        PrefsStorageDelegate.setPassword(password);
+                    if (serverResponseCode == SERVER_LOGGED_IN_SUCCESSFULLY
+                            || serverResponseCode == SERVER_LOGGED_IN_ALREADY) {
+                        saveCookiesFromConnection(connection);
+                        saveUsernamePassword(username, password);
                         loginSucceeded = true;
                     } else {
                         Log.d(TAG, "incorrect username or password");
                     }
-                } else if (responseCode == 400) {
+                } else if (responseCode == HTTP_RESPONSE_BAD_REQUEST) {
                     Log.d(TAG, "login failed. Bad request: " + connection.getErrorStream().toString());
                 }
             } catch (MalformedURLException e) {
@@ -246,7 +198,72 @@ public class WebServerDelegate {
         return loginSucceeded;
     }
 
-    private void storeCookiesFromConnection(HttpURLConnection connection) {
+    private boolean obtainCsrfToken(boolean useCookies) {
+
+        boolean succeeded = false;
+
+        try {
+            HttpURLConnection connection = createConnection(CSRF_URL, "GET");
+            if (useCookies)
+                appendCookiesToConnection(connection, true, true);
+
+            connection.connect();
+
+            int responseCode = connection.getResponseCode();
+            Log.d(TAG, "csrf http response code: " + responseCode);
+            if (responseCode == HTTP_RESPONSE_OK) {
+                String csrf = parseServerResponseCsrf(connection);
+                if (csrf != null) {
+                    saveCsrfToken(csrf);
+                    saveCookiesFromConnection(connection);
+                    succeeded = true;
+                } else {
+                    Log.d(TAG, "get csrf failed, null or empty");
+                }
+            } else if (responseCode == HTTP_RESPONSE_BAD_REQUEST) {
+                Log.d(TAG, "get csrf failed. Bad request: " + connection.getErrorStream().toString());
+            }
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return succeeded;
+    }
+
+    private HttpURLConnection createConnection(String urlString, String method)
+            throws  IOException, MalformedURLException {
+        HttpURLConnection connection = null;
+        URL url = new URL(urlString);
+        connection = (HttpURLConnection) url.openConnection();
+        connection.setReadTimeout(10000);
+        connection.setConnectTimeout(15000);
+        connection.setRequestProperty("Connection", "Keep-Alive");
+        //connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+        //connection.setRequestProperty("User-Agent", "Mozilla/5.0");
+        //connection.setRequestProperty("Accept-Language", "en-US,en;q=0.8,zh-CN;q=0.6");
+        //connection.setRequestProperty("Accept-Encoding", "gzip, deflate");
+        //connection.setFixedLengthStreamingMode(query.getBytes().length);
+        connection.setRequestMethod(method);
+        connection.setDoInput(true);
+        if (method.equals("POST"))
+            connection.setDoOutput(true);
+
+        return connection;
+    }
+
+    public void saveCsrfToken(String token) {
+        Log.d(TAG, "save csrf token: " + token);
+        PrefsStorageDelegate.setStringValue(CSRF_TOKEN_STORE_NAME, token);
+    }
+
+    public void saveUsernamePassword(String username, String password) {
+        PrefsStorageDelegate.setUsername(username);
+        PrefsStorageDelegate.setPassword(password);
+    }
+
+    private void saveCookiesFromConnection(HttpURLConnection connection) {
 
         List<String> cookiesHeader = connection.getHeaderFields().get("Set-Cookie");
 

@@ -148,6 +148,9 @@ public class BatteryView extends FrameLayout {
     }
 
     public void setPower(int power, boolean animated) {
+        if (power < 0)
+            return;
+
         if (animated) {
             int powerDeltaLen = Math.abs(power - this.power);
             if (powerDeltaLen > 1) {
