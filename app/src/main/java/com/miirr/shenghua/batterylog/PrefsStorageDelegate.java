@@ -46,6 +46,16 @@ public class PrefsStorageDelegate {
         editor.commit();
     }
 
+    public static boolean getBooleanValue(String key) {
+        return prefs.getBoolean(key, false);
+    }
+
+    public static void setBooleanValue(String key, boolean value) {
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putBoolean(key, value);
+        editor.commit();
+    }
+
     public static String getStringValue(String key) {
         return prefs.getString(key, "");
     }

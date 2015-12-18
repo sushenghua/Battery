@@ -230,7 +230,7 @@ public class BatteryLogService extends Service {
             int code = mWebServer.uploadChargeLog();
             if (code == WebServerDelegate.SERVER_LOGIN_REQUIRED) {
                 Log.d(TAG, "login required");
-                if (mWebServer.login()) {
+                if (mWebServer.login() == WebServerDelegate.SERVER_LOGIN_SUCCEEDED) {
                     Log.d(TAG, "login successful");
                     code = mWebServer.uploadChargeLog();
                     uploadSucceeded = code == WebServerDelegate.SERVER_UPLOAD_SUCCEEDED;

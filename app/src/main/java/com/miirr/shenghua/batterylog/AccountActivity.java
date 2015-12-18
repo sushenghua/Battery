@@ -1,21 +1,26 @@
 package com.miirr.shenghua.batterylog;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 /**
  * Created by shenghua on 12/7/15.
  */
 public class AccountActivity extends AppCompatActivity {
+
+    public static final String LOGIN_STATE_STORAGE_KEY = "LoggedIn";
 
     public static final String EXTRA_KEY = "ActivityType";
     public static final int UNDEFINED_ACTIVITY = -1;
@@ -119,6 +124,12 @@ public class AccountActivity extends AppCompatActivity {
         });
     }
 
+    public static boolean isLoggedIn(Context context) {
+        PrefsStorageDelegate.initialize(context.getSharedPreferences(
+                PrefsStorageDelegate.PREFS_NAME, Context.MODE_PRIVATE));
+        return PrefsStorageDelegate.getBooleanValue(LOGIN_STATE_STORAGE_KEY);
+    }
+
     private void attemptLogin() {
         accountOperation(mUsernameView, mPasswordView, null);
     }
@@ -200,11 +211,11 @@ public class AccountActivity extends AppCompatActivity {
 
     private boolean isValidUsername(String username) {
         //return username.contains("@");
-        return true;
+        return username.length() > 3;
     }
 
     private boolean isValidPassword(String password) {
-        return password.length() >= 4;
+        return password.length() >= 6;
     }
 
     private void showProgress(final boolean show) {
@@ -213,7 +224,7 @@ public class AccountActivity extends AppCompatActivity {
                 show, getResources().getInteger(android.R.integer.config_shortAnimTime));
     }
 
-    private class NetworkTask extends AsyncTask<Void, Void, Boolean> {
+    private class NetworkTask extends AsyncTask<Void, Void, Integer> {
 
         private final String mUsername;
         private final String mPassword;
@@ -224,7 +235,7 @@ public class AccountActivity extends AppCompatActivity {
         }
 
         @Override
-        protected Boolean doInBackground(Void... params) {
+        protected Integer doInBackground(Void... params) {
             if (mActivityType == LOGIN_ACTIVITY) {
                 return WebServerDelegate.getInstance().login(mUsername, mPassword);
             }
@@ -236,25 +247,48 @@ public class AccountActivity extends AppCompatActivity {
         }
 
         @Override
-        protected void onPostExecute(final Boolean success) {
+        protected void onPostExecute(final Integer resultCode) {
             mNetworkTask = null;
             showProgress(false);
 
-            if (success) {
-                AccountActivity.this.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Intent intent = new Intent(AccountActivity.this, MainActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                        startActivity(intent);
-                    }
-                });
-                finish();
-            } else {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
-                mPasswordView.requestFocus();
-                //String message = getResources().getString(R.string.error_incorrect_password);
-                //Toast.makeText(AccountActivity.this, message, Toast.LENGTH_SHORT).show();
+            Log.d("onPostExecute", "resultCode: " + resultCode);
+
+            switch (resultCode) {
+                case WebServerDelegate.SERVER_LOGIN_SUCCEEDED:
+                case WebServerDelegate.SERVER_LOGIN_ALREADY:
+                case WebServerDelegate.SERVER_REGISTER_SUCCEEDED:
+                    AccountActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Intent intent = new Intent(AccountActivity.this, MainActivity.class);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(intent);
+                        }
+                    });
+                    finish();
+                    break;
+
+                case WebServerDelegate.SERVER_LOGIN_INCORRECT_USER_OR_PASSWORD:
+                    mPasswordView.setError(getString(R.string.error_incorrect_password));
+                    mPasswordView.requestFocus();
+                    break;
+
+                case WebServerDelegate.SERVER_REGISTER_INVALID_USERNAME_OR_PASSWORD:
+                    mPasswordView.setError(getString(R.string.error_invalid_username_or_password));
+                    mPasswordView.requestFocus();
+                    break;
+
+                case WebServerDelegate.SERVER_REGISTER_ACCOUNT_ALREADY_EXISTS:
+                    mUsernameView.setError(getString(R.string.error_username_already_exists));
+                    mUsernameView.requestFocus();
+                    break;
+
+                case WebServerDelegate.SERVER_CSRF_TOKEN_NULL_OR_EMPTY:
+                case WebServerDelegate.SERVER_GET_CSRF_TOKEN_FAILED:
+                case WebServerDelegate.SERVER_BAD_REQUEST:
+                    String message = getResources().getString(R.string.error_server_communication_failed);
+                    Toast.makeText(AccountActivity.this, message, Toast.LENGTH_SHORT).show();
+                    break;
             }
         }
 

@@ -26,22 +26,28 @@ public class WebServerDelegate {
 
     private static final String TAG = "WebServerDelegate";
 
-    // server operation response code
-    public static final int SERVER_LOGGED_IN_SUCCESSFULLY = 100;
-    public static final int SERVER_LOGGED_IN_ALREADY = 101;
-    public static final int SERVER_LOGIN_FAILED = 102;
-
-    public static final int SERVER_REGISTER_SUCCESSFULLY = 110;
-    public static final int SERVER_REGISTER_ACCOUNT_ALREADY_EXISTS = 111;
-    public static final int SERVER_REGISTER_USERNAME_INVALID = 112;
-    public static final int SERVER_REGISTER_PASSWORD_INVALID = 113;
-    public static final int SERVER_REGISTER_EMAIL_INVALID = 114;
-
-    public static final int SERVER_EMPTY_CSRF_TOKEN = 120;
-
     // http response code
     private static final int HTTP_RESPONSE_OK = 200;
     private static final int HTTP_RESPONSE_BAD_REQUEST = 400;
+
+    // server operation response code
+    public static final int SERVER_UNKNOWN_ERROR = 2000;
+    public static final int SERVER_BAD_REQUEST = HTTP_RESPONSE_BAD_REQUEST;
+
+    public static final int SERVER_LOGIN_SUCCEEDED = 1000;
+    public static final int SERVER_LOGIN_ALREADY = 1001;
+    public static final int SERVER_LOGIN_INCORRECT_USER_OR_PASSWORD = 1002;
+
+    public static final int SERVER_REGISTER_SUCCEEDED = 1100;
+    public static final int SERVER_REGISTER_ACCOUNT_ALREADY_EXISTS = 1101;
+    public static final int SERVER_REGISTER_USERNAME_INVALID = 1102;
+    public static final int SERVER_REGISTER_PASSWORD_INVALID = 1103;
+    public static final int SERVER_REGISTER_INVALID_USERNAME_OR_PASSWORD = 1104;
+    public static final int SERVER_REGISTER_EMAIL_INVALID = 1105;
+
+    public static final int SERVER_GET_CSRF_TOKEN_SUCCEEDED = 1200;
+    public static final int SERVER_GET_CSRF_TOKEN_FAILED = 1201;
+    public static final int SERVER_CSRF_TOKEN_NULL_OR_EMPTY = 1202;
 
     // csrf and session
     private static final String CSRF_URL = "http://192.168.0.150/battery/app/frontend/web/index.php?r=user%2Fsecurity%2Fcsrf-token-m";
@@ -93,8 +99,8 @@ public class WebServerDelegate {
         return SERVER_LOGIN_REQUIRED;
     }
 
-    public boolean register(String username, String password) {
-        boolean registerSucceeded = false;
+    public int register(String username, String password) {
+        int serverResponseCode = SERVER_UNKNOWN_ERROR;
         if (username.length() > 0 && password.length() > 0) {
             try {
                 HttpURLConnection connection = createConnection(REGISTER_URL, "POST");
@@ -103,21 +109,20 @@ public class WebServerDelegate {
 
                 connection.connect();
 
-                int responseCode = connection.getResponseCode();
-                Log.d(TAG, "register http response code: " + responseCode);
-                if (responseCode == HTTP_RESPONSE_OK) {
-                    int serverResponseCode = parseServerResponseCode(connection);
+                int httpResponseCode = connection.getResponseCode();
+                Log.d(TAG, "register http response code: " + httpResponseCode);
+                if (httpResponseCode == HTTP_RESPONSE_OK) {
+                    serverResponseCode = parseServerResponseCode(connection);
                     Log.d(TAG, "register server response code: " + serverResponseCode);
-                    if (serverResponseCode == SERVER_REGISTER_SUCCESSFULLY
-                            || serverResponseCode == 101) {
+                    if (serverResponseCode == SERVER_REGISTER_SUCCEEDED) {
                         saveCookiesFromConnection(connection);
-                        PrefsStorageDelegate.setUsername(username);
-                        PrefsStorageDelegate.setPassword(password);
-                        registerSucceeded = true;
+                        saveUsernamePassword(username, password);
+                        saveAsLoggedIn(true);
                     } else {
                         Log.d(TAG, "incorrect username or password");
                     }
-                } else if (responseCode == HTTP_RESPONSE_BAD_REQUEST) {
+                } else if (httpResponseCode == HTTP_RESPONSE_BAD_REQUEST) {
+                    serverResponseCode = HTTP_RESPONSE_BAD_REQUEST;
                     Log.d(TAG, "register failed. Bad request: " + connection.getErrorStream().toString());
                 }
             }
@@ -127,7 +132,10 @@ public class WebServerDelegate {
                 e.printStackTrace();
             }
         }
-        return registerSucceeded;
+        else {
+            serverResponseCode = SERVER_REGISTER_INVALID_USERNAME_OR_PASSWORD;
+        }
+        return serverResponseCode;
     }
 
     private void postRegisterDataToConnection(String username, String password, HttpURLConnection connection) {
@@ -143,65 +151,67 @@ public class WebServerDelegate {
 
     private String generateRegisterPostDataString(String username, String password) {
         Uri.Builder builder = new Uri.Builder()
+                .appendQueryParameter(CSRF_FORM_NAME, PrefsStorageDelegate.getStringValue(CSRF_TOKEN_STORE_NAME))
                 .appendQueryParameter(REGISTER_FORM_USER, username)
                 .appendQueryParameter(REGISTER_FORM_PASSWORD, password);
         return builder.build().getEncodedQuery();
     }
 
-    public boolean login() {
+    public int login() {
         return login(true, PrefsStorageDelegate.getUsername(), PrefsStorageDelegate.getPassword());
     }
 
-    public boolean login(String username, String password) {
+    public int login(String username, String password) {
         return login(false, username, password);
     }
 
-    public boolean login(boolean useSession, String username, String password) {
-        boolean loginSucceeded = false;
+    public int login(boolean useSession, String username, String password) {
 
-        if (!obtainCsrfToken(true))
-            return false;
+        int serverResponseCode = SERVER_UNKNOWN_ERROR;
+        do {
+            serverResponseCode = obtainCsrfToken(true);
+            if (serverResponseCode != SERVER_GET_CSRF_TOKEN_SUCCEEDED) break;
 
-        if ( useSession || (username.length() > 0 && password.length() > 0) ) {
-            try {
-                HttpURLConnection connection = createConnection(LOGIN_URL, "POST");
+            if (useSession || (username.length() > 0 && password.length() > 0)) {
+                try {
+                    HttpURLConnection connection = createConnection(LOGIN_URL, "POST");
+                    appendCookiesToConnection(connection, true, useSession);
+                    postLoginDataToConnection(username, password, connection);
+                    connection.connect();
 
-                appendCookiesToConnection(connection, true, useSession);
-
-                postLoginDataToConnection(username, password, connection);
-
-                connection.connect();
-
-                int responseCode = connection.getResponseCode();
-                Log.d(TAG, "login http response code: " + responseCode);
-                if (responseCode == HTTP_RESPONSE_OK) {
-                    int serverResponseCode = parseServerResponseCode(connection);
-                    Log.d(TAG, "login server response code: " + serverResponseCode);
-                    if (serverResponseCode == SERVER_LOGGED_IN_SUCCESSFULLY
-                            || serverResponseCode == SERVER_LOGGED_IN_ALREADY) {
-                        saveCookiesFromConnection(connection);
-                        saveUsernamePassword(username, password);
-                        loginSucceeded = true;
-                    } else {
-                        Log.d(TAG, "incorrect username or password");
+                    int httpResponseCode = connection.getResponseCode();
+                    Log.d(TAG, "login http response code: " + httpResponseCode);
+                    if (httpResponseCode == HTTP_RESPONSE_OK) {
+                        serverResponseCode = parseServerResponseCode(connection);
+                        Log.d(TAG, "login server response code: " + serverResponseCode);
+                        if (serverResponseCode == SERVER_LOGIN_SUCCEEDED
+                                || serverResponseCode == SERVER_LOGIN_ALREADY) {
+                            saveCookiesFromConnection(connection);
+                            saveUsernamePassword(username, password);
+                            saveAsLoggedIn(true);
+                        } else if (serverResponseCode == SERVER_LOGIN_INCORRECT_USER_OR_PASSWORD) {
+                            Log.d(TAG, "incorrect username or password");
+                        }
+                    } else if (httpResponseCode == HTTP_RESPONSE_BAD_REQUEST) {
+                        serverResponseCode = HTTP_RESPONSE_BAD_REQUEST;
+                        Log.d(TAG, "login failed. Bad request: " + connection.getErrorStream().toString());
                     }
-                } else if (responseCode == HTTP_RESPONSE_BAD_REQUEST) {
-                    Log.d(TAG, "login failed. Bad request: " + connection.getErrorStream().toString());
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
             }
-        }
+            else {
+                serverResponseCode = SERVER_LOGIN_INCORRECT_USER_OR_PASSWORD;
+            }
+        } while (false);
 
-        return loginSucceeded;
+        return serverResponseCode;
     }
 
-    private boolean obtainCsrfToken(boolean useCookies) {
-
-        boolean succeeded = false;
-
+    private int obtainCsrfToken(boolean useCookies) {
+        int code = SERVER_UNKNOWN_ERROR;
         try {
             HttpURLConnection connection = createConnection(CSRF_URL, "GET");
             if (useCookies)
@@ -209,18 +219,20 @@ public class WebServerDelegate {
 
             connection.connect();
 
-            int responseCode = connection.getResponseCode();
-            Log.d(TAG, "csrf http response code: " + responseCode);
-            if (responseCode == HTTP_RESPONSE_OK) {
+            int httpResponseCode = connection.getResponseCode();
+            Log.d(TAG, "csrf http response code: " + httpResponseCode);
+            if (httpResponseCode == HTTP_RESPONSE_OK) {
                 String csrf = parseServerResponseCsrf(connection);
-                if (csrf != null) {
+                if (csrf != null && csrf.length() > 0) {
                     saveCsrfToken(csrf);
                     saveCookiesFromConnection(connection);
-                    succeeded = true;
+                    code = SERVER_GET_CSRF_TOKEN_SUCCEEDED;
                 } else {
+                    code = SERVER_CSRF_TOKEN_NULL_OR_EMPTY;
                     Log.d(TAG, "get csrf failed, null or empty");
                 }
-            } else if (responseCode == HTTP_RESPONSE_BAD_REQUEST) {
+            } else if (httpResponseCode == HTTP_RESPONSE_BAD_REQUEST) {
+                code = HTTP_RESPONSE_BAD_REQUEST;
                 Log.d(TAG, "get csrf failed. Bad request: " + connection.getErrorStream().toString());
             }
         } catch (MalformedURLException e) {
@@ -228,8 +240,7 @@ public class WebServerDelegate {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return succeeded;
+        return code;
     }
 
     private HttpURLConnection createConnection(String urlString, String method)
@@ -261,6 +272,10 @@ public class WebServerDelegate {
     public void saveUsernamePassword(String username, String password) {
         PrefsStorageDelegate.setUsername(username);
         PrefsStorageDelegate.setPassword(password);
+    }
+
+    public void saveAsLoggedIn(boolean loggedIn) {
+        PrefsStorageDelegate.setBooleanValue(AccountActivity.LOGIN_STATE_STORAGE_KEY, loggedIn);
     }
 
     private void saveCookiesFromConnection(HttpURLConnection connection) {
