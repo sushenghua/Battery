@@ -39,6 +39,7 @@ public class WebServerDelegate {
     public static final int SERVER_LOGIN_SUCCEEDED = 1000;
     public static final int SERVER_LOGIN_ALREADY = 1001;
     public static final int SERVER_LOGIN_INCORRECT_USER_OR_PASSWORD = 1002;
+    public static final int SERVER_LOGIN_EMTPY_USER_OR_PASSWORD = 1003;
 
     public static final int SERVER_REGISTER_SUCCEEDED = 2000;
     public static final int SERVER_REGISTER_FAILED = 2100;
@@ -109,43 +110,46 @@ public class WebServerDelegate {
 
     public int register(String email, String password) {
         int serverResponseCode = SERVER_UNKNOWN_ERROR;
-        if (email.length() > 0 && password.length() > 0) {
-            try {
-                HttpURLConnection connection = createConnection(REGISTER_URL, "POST");
-                appendCookiesToConnection(connection, true, true);
-                postRegisterDataToConnection(email, password, connection);
+        do {
+            serverResponseCode = obtainCsrfToken(true);
+            if (serverResponseCode != SERVER_GET_CSRF_TOKEN_SUCCEEDED) break;
 
-                connection.connect();
+            if (email.length() > 0 && password.length() > 0) {
+                try {
+                    HttpURLConnection connection = createConnection(REGISTER_URL, "POST");
+                    appendCookiesToConnection(connection, true, true);
+                    postRegisterDataToConnection(email, password, connection);
 
-                int httpResponseCode = connection.getResponseCode();
-                Log.d(TAG, "register http response code: " + httpResponseCode);
-                if (httpResponseCode == HTTP_RESPONSE_OK) {
-                    serverResponseCode = parseServerResponseCode(connection);
-                    Log.d(TAG, "register server response code: " + serverResponseCode);
-                    if (serverResponseCode == SERVER_REGISTER_SUCCEEDED) {
-                        saveCookiesFromConnection(connection);
-                        saveEmailPassword(email, password);
-                        saveAsLoggedIn(true);
-                    } else {
-                        Log.d(TAG, "incorrect email or password");
+                    connection.connect();
+
+                    int httpResponseCode = connection.getResponseCode();
+                    Log.d(TAG, "register http response code: " + httpResponseCode);
+                    if (httpResponseCode == HTTP_RESPONSE_OK) {
+                        serverResponseCode = parseServerResponseCode(connection);
+                        Log.d(TAG, "register server response code: " + serverResponseCode);
+                        if (serverResponseCode == SERVER_REGISTER_SUCCEEDED) {
+                            saveCookiesFromConnection(connection);
+                            saveEmailPassword(email, password);
+                            saveAsLoggedIn(true);
+                        } else {
+                            Log.d(TAG, "incorrect email or password");
+                        }
+                    } else if (httpResponseCode == HTTP_RESPONSE_BAD_REQUEST) {
+                        serverResponseCode = HTTP_RESPONSE_BAD_REQUEST;
+                        Log.d(TAG, "register failed. Bad request: " + connection.getErrorStream().toString());
+                    } else if (httpResponseCode == HTTP_RESPONSE_FORBIDDEN_REQUEST) {
+                        serverResponseCode = HTTP_RESPONSE_FORBIDDEN_REQUEST;
+                        Log.d(TAG, "register failed. Forbidden request: " + connection.getErrorStream().toString());
                     }
-                } else if (httpResponseCode == HTTP_RESPONSE_BAD_REQUEST) {
-                    serverResponseCode = HTTP_RESPONSE_BAD_REQUEST;
-                    Log.d(TAG, "register failed. Bad request: " + connection.getErrorStream().toString());
-                } else if (httpResponseCode == HTTP_RESPONSE_FORBIDDEN_REQUEST) {
-                    serverResponseCode = HTTP_RESPONSE_FORBIDDEN_REQUEST;
-                    Log.d(TAG, "register failed. Forbidden request: " + connection.getErrorStream().toString());
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
+            } else {
+                serverResponseCode = SERVER_REGISTER_EMPTY_EMAIL_OR_PASSWORD;
             }
-            catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        else {
-            serverResponseCode = SERVER_REGISTER_EMPTY_EMAIL_OR_PASSWORD;
-        }
+        } while (false);
         return serverResponseCode;
     }
 
@@ -214,7 +218,7 @@ public class WebServerDelegate {
                 }
             }
             else {
-                serverResponseCode = SERVER_LOGIN_INCORRECT_USER_OR_PASSWORD;
+                serverResponseCode = SERVER_LOGIN_EMTPY_USER_OR_PASSWORD;
             }
         } while (false);
 

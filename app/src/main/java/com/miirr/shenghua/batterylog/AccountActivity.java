@@ -333,10 +333,16 @@ public class AccountActivity extends AppCompatActivity {
                     }
                     break;
 
+                case WebServerDelegate.SERVER_LOGIN_EMTPY_USER_OR_PASSWORD:
+                case WebServerDelegate.SERVER_REGISTER_EMPTY_EMAIL_OR_PASSWORD:
+                    String message = getResources().getString(R.string.error_empty_email_or_password);
+                    Toast.makeText(AccountActivity.this, message, Toast.LENGTH_SHORT).show();
+                    break;
+
                 case WebServerDelegate.SERVER_CSRF_TOKEN_NULL_OR_EMPTY:
                 case WebServerDelegate.SERVER_GET_CSRF_TOKEN_FAILED:
                 case WebServerDelegate.SERVER_BAD_REQUEST:
-                    String message = getResources().getString(R.string.error_server_communication_failed);
+                    message = getResources().getString(R.string.error_server_communication_failed);
                     Toast.makeText(AccountActivity.this, message, Toast.LENGTH_SHORT).show();
                     break;
 

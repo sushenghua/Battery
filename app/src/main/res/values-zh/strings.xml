@@ -27,6 +27,7 @@
     <string name="error_invalid_email">无效的邮箱名</string>
     <string name="error_invalid_password">密码包含无效字符</string>
     <string name="error_password_at_least_length">密码最短需要6位</string>
+    <string name="error_empty_email_or_password">邮箱或密码不能为空</string>
     <string name="error_server_communication_failed">与服务器通讯失败</string>
     <string name="error_server_forbidden">无法执行此操作</string>
 

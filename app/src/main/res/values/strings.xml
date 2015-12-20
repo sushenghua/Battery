@@ -29,6 +29,7 @@
     <string name="error_invalid_email">Invalid email address</string>
     <string name="error_invalid_password">Password contains invalid character</string>
     <string name="error_password_at_least_length">Password requires at least 6 bits</string>
+    <string name="error_empty_email_or_password">Email and password cannot be empty</string>
     <string name="error_server_communication_failed">Couldn\'t communicate with server</string>
     <string name="error_server_forbidden">Cannot execute this operation</string>
 
