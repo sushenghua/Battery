@@ -285,9 +285,7 @@ public class AccountActivity extends AppCompatActivity {
         protected void onPostExecute(final Integer resultCode) {
             mNetworkTask = null;
             showProgress(false);
-
-            Log.d("onPostExecute", "resultCode: " + resultCode);
-
+            //Log.d("onPostExecute", "resultCode: " + resultCode);
             switch (resultCode) {
                 case WebServerDelegate.SERVER_LOGIN_SUCCEEDED:
                 case WebServerDelegate.SERVER_LOGIN_ALREADY:

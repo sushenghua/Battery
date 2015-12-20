@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.util.Base64;
 import android.util.Log;
 
 import org.json.JSONException;
@@ -13,6 +14,7 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpCookie;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -240,6 +242,7 @@ public class WebServerDelegate {
                 String csrf = parseServerResponseCsrf(connection);
                 if (csrf != null && csrf.length() > 0) {
                     saveCsrfToken(csrf);
+//debugBase64(csrf);
                     saveCookiesFromConnection(connection);
                     code = SERVER_GET_CSRF_TOKEN_SUCCEEDED;
                 } else {
@@ -256,6 +259,41 @@ public class WebServerDelegate {
             e.printStackTrace();
         }
         return code;
+    }
+
+    private void debugBase64(String csrf) {
+        byte[] rawToken;
+        try {
+            rawToken = Base64.decode(csrf.replace('.', '+').getBytes("UTF-8"), Base64.DEFAULT);
+            Log.d("rawToken---->", String.valueOf(rawToken));
+
+            String rawTokenStr = String.valueOf(rawToken);
+            String mask = rawTokenStr.substring(0, 8);
+            String token = rawTokenStr.substring(8);
+
+            int maskLen = mask.length();
+            int tokenLen = token.length();
+
+            if (maskLen < tokenLen) {
+                mask = mask.concat(token.substring(0, tokenLen - maskLen));
+            } else if (maskLen > tokenLen) {
+                token = token.concat(mask.substring(0, maskLen - tokenLen));
+            }
+
+            byte[] maskBytes = mask.getBytes();
+            byte[] tokenBytes = token.getBytes();
+
+            byte[] res = new byte[token.length()];
+            for (int i = 0; i < res.length; ++i) {
+                res[i] = (byte) ((0xFF & (int) (maskBytes[i])) ^ (0xFF & (int) tokenBytes[i]));
+            }
+
+            String aaa = String.valueOf(res);
+            Log.d("token decode----->", aaa);
+
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
     }
 
     private HttpURLConnection createConnection(String urlString, String method)
@@ -398,7 +436,6 @@ public class WebServerDelegate {
     private String parseJsonResponseCsrf(String responseString) {
         String csrf = null;
         try {
-
             JSONObject obj = new JSONObject(responseString);
             //Log.d("JSON log: ", obj.getInt("code") + "   <<<<");
             csrf = obj.getString(CSRF_TOKEN_PARSE_NAME);
