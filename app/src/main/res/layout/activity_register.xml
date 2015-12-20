@@ -51,10 +51,10 @@
                     android:layout_height="wrap_content">
 
                     <EditText
-                        android:id="@+id/register_username"
+                        android:id="@+id/register_email"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="@string/prompt_username"
+                        android:hint="@string/prompt_register_email"
                         android:inputType="textEmailAddress"
                         android:maxLines="1"
                         android:singleLine="true" />
@@ -69,7 +69,7 @@
                         android:id="@+id/register_password"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="@string/prompt_password"
+                        android:hint="@string/prompt_register_password"
 
                         android:imeActionLabel="@string/action_login_short"
                         android:imeOptions="actionUnspecified"
@@ -87,7 +87,7 @@
                         android:id="@+id/register_password_confirm"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="@string/prompt_password_confirm"
+                        android:hint="@string/prompt_register_password_confirm"
 
                         android:imeActionLabel="@string/action_register"
                         android:imeOptions="actionUnspecified"
@@ -103,6 +103,23 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:text="@string/action_register"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/register_completed_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="20dp"
+                    android:textSize="25sp"
+                    android:text="@string/msg_registration_completed" />
+                <Button
+                    android:id="@+id/register_completed_button"
+                    style="?android:textAppearanceSmall"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/button_confirmation"
                     android:textStyle="bold" />
 
             </LinearLayout>

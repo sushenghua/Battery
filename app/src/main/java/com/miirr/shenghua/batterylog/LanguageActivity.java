@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -24,6 +25,7 @@ public class LanguageActivity extends AppCompatActivity {
     private int mSelectedLanguageOptionIndex = 0;
     private static int sLanguageOptionIndex = 0;
     private static String[] sLanguageOptions = {"auto", "en", "zh"};
+    private static int sAutoLanguageIndex = 1; // default point to "en"
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,11 +89,27 @@ public class LanguageActivity extends AppCompatActivity {
         langListView.setItemChecked(mSelectedLanguageOptionIndex, true);
     }
 
+    public static String getPreferedLanguage() {
+        if (sLanguageOptionIndex == 0) {
+            return sLanguageOptions[sAutoLanguageIndex];
+        }
+        return sLanguageOptions[sLanguageOptionIndex];
+    }
+
     private static void setLocaleWithLanguageIndex(Context context, int langIndex) {
         Resources res = context.getResources();
         if (langIndex == 0) {
             Resources sysRes = Resources.getSystem();
-            res.updateConfiguration(sysRes.getConfiguration(), null);
+            Configuration config = sysRes.getConfiguration();
+            res.updateConfiguration(config, null);
+            String autoLanguage = config.locale.getLanguage();
+            //Log.d("-----> auto lang", autoLanguage);
+            if (autoLanguage.equals(sLanguageOptions[1]))
+                sAutoLanguageIndex = 1;
+            else if (autoLanguage.equals(sLanguageOptions[2]))
+                sAutoLanguageIndex = 2;
+            else
+                sAutoLanguageIndex = 1;
         }
         else {
             DisplayMetrics dm = res.getDisplayMetrics();

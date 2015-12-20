@@ -51,10 +51,10 @@
                     android:layout_height="wrap_content">
 
                     <EditText
-                        android:id="@+id/login_username"
+                        android:id="@+id/login_email"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="@string/prompt_username"
+                        android:hint="@string/prompt_login_email"
                         android:inputType="textEmailAddress"
                         android:maxLines="1"
                         android:singleLine="true" />
@@ -69,7 +69,7 @@
                         android:id="@+id/login_password"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="@string/prompt_password"
+                        android:hint="@string/prompt_login_password"
                         android:imeActionId="@+id/login"
                         android:imeActionLabel="@string/action_login_short"
                         android:imeOptions="actionUnspecified"

@@ -24,27 +24,30 @@
     <string name="lang_en">English</string>
     <string name="lang_zh">中文</string>
 
-    <!-- login/resgister activity -->
-    <string name="prompt_username">Username</string>
-    <string name="prompt_password">Password</string>
-    <string name="prompt_password_confirm">Password Confirmation</string>
+    <!-- login/resgister shared -->
+    <string name="error_field_required">This field can\'t be empty</string>
+    <string name="error_invalid_email">Invalid email address</string>
+    <string name="error_invalid_password">Password contains invalid character</string>
+    <string name="error_password_at_least_length">Password requires at least 6 bits</string>
+    <string name="error_server_communication_failed">Couldn\'t communicate with server</string>
+    <string name="error_server_forbidden">Cannot execute this operation</string>
+
+    <!-- login -->
     <string name="action_login">Login</string>
     <string name="action_login_short">Login</string>
+    <string name="prompt_login_email">Account email</string>
+    <string name="prompt_login_password">Account password</string>
+    <string name="error_email_password_mismatch">Account email or password incorrect</string>
+
+    <!-- register -->
     <string name="action_register">Register</string>
-    <string name="error_invalid_username">Username requires at lease 3 bits</string>
-    <string name="error_invalid_password">Password requires at least 6 bits</string>
+    <string name="prompt_register_email">Email for registration</string>
+    <string name="prompt_register_password">Password for registration</string>
+    <string name="prompt_register_password_confirm">Password Confirmation</string>
     <string name="error_confirm_password">Inconsistent password</string>
-    <string name="error_incorrect_password">Incorrect username or password</string>
-    <string name="error_field_required">This field can\'t be empty</string>
-    <string name="permission_rationale">"Contacts permissions are needed for providing email
-        completions."
-    </string>
-
-    <string name="error_invalid_username_or_password">Password or password is invalid</string>
-    <string name="error_username_already_exists">This username has been registered</string>
-    <string name="error_server_communication_failed">Couldn\'t communicate with server</string>
-
-    <string name="back">back</string>
+    <string name="error_email_already_exists">This email already has been registered</string>
+    <string name="msg_registration_completed">Registration completed</string>
+    <string name="button_confirmation">Ok</string>
 
     <!-- main activity -->
     <string name="section_format">section</string>

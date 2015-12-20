@@ -10,7 +10,7 @@ public class PrefsStorageDelegate {
     public static final String PREFS_NAME = "BatteryLogData";
     private static SharedPreferences prefs;
 
-    private static final String USER_NAME = "UserName";
+    private static final String EMAIL = "Email";
     private static final String PASSWORD = "Password";
 
     private static final String PLUGIN_POWER = "PluginPower";
@@ -26,13 +26,13 @@ public class PrefsStorageDelegate {
         if (prefs == null) prefs = p;
     }
 
-    public static String getUsername() {
-        return prefs.getString(USER_NAME, "");
+    public static String getEmail() {
+        return prefs.getString(EMAIL, "");
     }
 
-    public static void setUsername(String username) {
+    public static void setEmail(String email) {
         SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(USER_NAME, username);
+        editor.putString(EMAIL, email);
         editor.commit();
     }
 
