@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.util.Base64;
 import android.util.Log;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -35,8 +36,12 @@ public class WebServerDelegate {
 
     // server operation response code
     public static final int SERVER_UNKNOWN_ERROR = 5000;
+    public static final int SERVER_RESPONSE_PARSE_ERROR = 5500;
     public static final int SERVER_BAD_REQUEST = HTTP_RESPONSE_BAD_REQUEST;
     public static final int SERVER_FORBIDDEN_REQUEST = HTTP_RESPONSE_FORBIDDEN_REQUEST;
+
+    public static final int SERVER_UPLOAD_SUCCEEDED = 3000;
+    public static final int SERVER_UPLOAD_LOGIN_REQUIRED = 3001;
 
     public static final int SERVER_LOGIN_SUCCEEDED = 1000;
     public static final int SERVER_LOGIN_ALREADY = 1001;
@@ -51,8 +56,11 @@ public class WebServerDelegate {
     public static final int SERVER_GET_CSRF_TOKEN_FAILED = 1201;
     public static final int SERVER_CSRF_TOKEN_NULL_OR_EMPTY = 1202;
 
+    // web root
+    private static final String URL_ROOT = "http://192.168.0.150/battery/app/frontend/web/index.php?";
+
     // csrf and session
-    private static final String CSRF_URL = "http://192.168.0.150/battery/app/frontend/web/index.php?r=user%2Fsecurity%2Fcsrf-token-m";
+    private static final String CSRF_URL = URL_ROOT + "r=user%2Fsecurity%2Fcsrf-token-m";
     private static final String CSRF_TOKEN_PARSE_NAME = "token";
     private static final String CSRF_TOKEN_STORE_NAME = "CsrfToken";
     private static final String CSRF_COOKIE_PARSE_NAME = "_csrf";
@@ -62,7 +70,7 @@ public class WebServerDelegate {
     private static final String SESSION_COOKIE_STORE_NAME = "SessionCookie";
 
     // login
-    private static final String LOGIN_URL = "http://192.168.0.150/battery/app/frontend/web/index.php?r=user%2Fsecurity%2Flogin-m";
+    private static final String LOGIN_URL = URL_ROOT + "r=user%2Fsecurity%2Flogin-m";
     private static final String LOGIN_FORM_EMAIL = "login-form[login]";
     private static final String LOGIN_FORM_PASSWORD = "login-form[password]";
     private static final String LOGIN_FORM_REMEMBER = "login-form[rememberMe]";
@@ -70,26 +78,17 @@ public class WebServerDelegate {
     private static final String LOGIN_FORM_AJAX_VALUE = "login-form";
 
     // register
-    private static final String REGISTER_URL = "http://192.168.0.150/battery/app/frontend/web/index.php?r=user%2Fregistration%2Fregister-m";
+    private static final String REGISTER_URL = URL_ROOT + "r=user%2Fregistration%2Fregister-m";
     private static final String REGISTER_FORM_EMAIL = "register-form[email]";
     private static final String REGISTER_FORM_PASSWORD = "register-form[password]";
 
-    // server response code
-    public static final int SERVER_LOGIN_REQUIRED = 200;
-    public static final int SERVER_UPLOAD_SUCCEEDED = 201;
-
-    // parse
-    public static final int SERVER_RESPONSE_PARSE_ERROR = 5500;
+    // upload
+    private static final String UPLOAD_URL = URL_ROOT + "r=site%2Fupload-battery-log-m";
+    private static final String UPLOAD_DATA_TAG = "logs";
 
     private JSONObject errorMessage = null;
 
     private static WebServerDelegate sInstance = new WebServerDelegate();
-
-    private WebServerDelegate() {
-        // debug
-        PrefsStorageDelegate.setEmail("demo8888");
-        PrefsStorageDelegate.setPassword("demo8888");
-    }
 
     public static WebServerDelegate getInstance() {
         return sInstance;
@@ -105,9 +104,74 @@ public class WebServerDelegate {
         return errorMessage;
     }
 
-    public int uploadChargeLog() {
+    private static final int SINGLE_UPLOAD_LOG_COUNT = 30;
+    public int uploadChargeLog(BatteryLocalDbAdapter db) {
         // pick all local un-uploaded battery charge log, then generate json data, then upload
-        return SERVER_LOGIN_REQUIRED;
+        int serverResponseCode = SERVER_UNKNOWN_ERROR;
+        try {
+            JSONArray logsToUpload;
+            while ((logsToUpload = db.getChargeLog(false, SINGLE_UPLOAD_LOG_COUNT)).length() > 0) {
+                serverResponseCode = uploadChargeLog(logsToUpload);
+                if (serverResponseCode == SERVER_UPLOAD_SUCCEEDED) {
+                    db.markChargeLogAsUploaded(logsToUpload);
+                } else {
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return serverResponseCode;
+    }
+
+    private int uploadChargeLog(JSONArray logs) {
+        int serverResponseCode = SERVER_UNKNOWN_ERROR;
+        do {
+            try {
+                HttpURLConnection connection = createConnection(UPLOAD_URL, "POST");
+                appendCookiesToConnection(connection, true, true);
+                postChargeLogDataToConnection(logs, connection);
+
+                connection.connect();
+
+                int httpResponseCode = connection.getResponseCode();
+                Log.d(TAG, "upload http response code: " + httpResponseCode);
+                if (httpResponseCode == HTTP_RESPONSE_OK) {
+                    serverResponseCode = parseServerResponseCode(connection);
+                    Log.d(TAG, "upload server response code: " + serverResponseCode);
+                    if (serverResponseCode == SERVER_UPLOAD_SUCCEEDED) {
+                        //saveCookiesFromConnection(connection);
+                    }
+                } else if (httpResponseCode == HTTP_RESPONSE_BAD_REQUEST) {
+                    serverResponseCode = HTTP_RESPONSE_BAD_REQUEST;
+                    Log.d(TAG, "upload failed. Bad request: " + connection.getErrorStream().toString());
+                } else if (httpResponseCode == HTTP_RESPONSE_FORBIDDEN_REQUEST) {
+                    serverResponseCode = HTTP_RESPONSE_FORBIDDEN_REQUEST;
+                    Log.d(TAG, "upload failed. Forbidden request: " + connection.getErrorStream().toString());
+                }
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } while (false);
+
+        return serverResponseCode;
+    }
+
+    private void postChargeLogDataToConnection(JSONArray logs, HttpURLConnection connection)
+            throws IOException {
+        DataOutputStream os = new DataOutputStream(connection.getOutputStream());
+        os.writeBytes(generateLogsDataString(logs));
+        os.flush();
+        os.close();
+    }
+
+    private String generateLogsDataString(JSONArray logs) {
+        Uri.Builder builder = new Uri.Builder()
+                .appendQueryParameter(CSRF_FORM_NAME, PrefsStorageDelegate.getStringValue(CSRF_TOKEN_STORE_NAME))
+                .appendQueryParameter(UPLOAD_DATA_TAG, logs.toString());
+        return builder.build().getEncodedQuery();
     }
 
     public int register(String email, String password) {
@@ -155,15 +219,12 @@ public class WebServerDelegate {
         return serverResponseCode;
     }
 
-    private void postRegisterDataToConnection(String email, String password, HttpURLConnection connection) {
-        try {
-            DataOutputStream os = new DataOutputStream(connection.getOutputStream());
-            os.writeBytes(generateRegisterPostDataString(email, password));
-            os.flush();
-            os.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    private void postRegisterDataToConnection(String email, String password, HttpURLConnection connection)
+            throws IOException {
+        DataOutputStream os = new DataOutputStream(connection.getOutputStream());
+        os.writeBytes(generateRegisterPostDataString(email, password));
+        os.flush();
+        os.close();
     }
 
     private String generateRegisterPostDataString(String email, String password) {
@@ -225,6 +286,24 @@ public class WebServerDelegate {
         } while (false);
 
         return serverResponseCode;
+    }
+
+    private void postLoginDataToConnection(String email, String password, HttpURLConnection connection)
+            throws IOException {
+        DataOutputStream os = new DataOutputStream(connection.getOutputStream());
+        os.writeBytes(generateLoginPostDataString(email, password));
+        os.flush();
+        os.close();
+    }
+
+    private String generateLoginPostDataString(String email, String password) {
+        Uri.Builder builder = new Uri.Builder()
+                .appendQueryParameter(CSRF_FORM_NAME, PrefsStorageDelegate.getStringValue(CSRF_TOKEN_STORE_NAME))
+                .appendQueryParameter(LOGIN_FORM_EMAIL, email)
+                .appendQueryParameter(LOGIN_FORM_PASSWORD, password)
+                .appendQueryParameter(LOGIN_FORM_REMEMBER, "0")
+                .appendQueryParameter(LOGIN_FORM_AJAX, LOGIN_FORM_AJAX_VALUE);
+        return builder.build().getEncodedQuery();
     }
 
     private int obtainCsrfToken(boolean useCookies) {
@@ -369,27 +448,6 @@ public class WebServerDelegate {
             connection.setRequestProperty("Cookie", mergedCookie);
             Log.d(TAG, "--->connection append cookies: "+mergedCookie);
         }
-    }
-
-    private void postLoginDataToConnection(String email, String password, HttpURLConnection connection) {
-        try {
-            DataOutputStream os = new DataOutputStream(connection.getOutputStream());
-            os.writeBytes(generateLoginPostDataString(email, password));
-            os.flush();
-            os.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private String generateLoginPostDataString(String email, String password) {
-        Uri.Builder builder = new Uri.Builder()
-                .appendQueryParameter(CSRF_FORM_NAME, PrefsStorageDelegate.getStringValue(CSRF_TOKEN_STORE_NAME))
-                .appendQueryParameter(LOGIN_FORM_EMAIL, email)
-                .appendQueryParameter(LOGIN_FORM_PASSWORD, password)
-                .appendQueryParameter(LOGIN_FORM_REMEMBER, "0")
-                .appendQueryParameter(LOGIN_FORM_AJAX, LOGIN_FORM_AJAX_VALUE);
-        return builder.build().getEncodedQuery();
     }
 
     private String getResponseString(HttpURLConnection connection) {

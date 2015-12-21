@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
 //        setContentView(new BatteryView(this));
         setContentView(R.layout.activity_main);
 
-        // ------debug
+        // ------debug to be deleted later
 //        Resources res = getResources();
 //        DisplayMetrics dm = res.getDisplayMetrics();
 //        Configuration conf = res.getConfiguration();
@@ -72,6 +72,18 @@ public class MainActivity extends AppCompatActivity {
 //        conf.locale = newLocale;
 //        res.updateConfiguration(conf, dm);
         // ------------
+
+        // ------ database test to be deleted later
+        BatteryLocalDbAdapter dbAdapter = new BatteryLocalDbAdapter(this);
+//        long id = dbAdapter.insertLog(20, 12032300, 60, 12032330, 12032335, 35, true);
+//        Log.d("DB insert test", ""+id);
+//        dbAdapter.markChargeLogAsUploaded(dbAdapter.getChargeLog(false));
+        Log.d("DB---uploaded--->", dbAdapter.getChargeLog(true).toString());
+        Log.d("DB---unuploaded--->", dbAdapter.getChargeLog(false).toString());
+
+
+
+
 
         // fragment adapter
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
@@ -103,18 +115,6 @@ public class MainActivity extends AppCompatActivity {
         // launch battery log service
         Intent serviceIntent = new Intent(this, BatteryLogService.class);
         startService(serviceIntent);
-
-
-        // database test
-        BatteryLocalDbAdapter dbAdapter = new BatteryLocalDbAdapter(this);
-//        long id = dbAdapter.insertLog(20, 12032300, 60, 12032330, 12032335, 35, true);
-//        Log.d("DB insert test", ""+id);
-
-//        dbAdapter.markChargeLogAsUploaded(dbAdapter.getChargeLog(false));
-
-        JSONArray ja = dbAdapter.getChargeLog(false);
-        Log.d("DB query test count", ja.length()+"");
-        Log.d("DB query test", ja.toString());
     }
 
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
@@ -130,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
-            Log.d("pager pos: ", ""+position);
+            //Log.d("pager pos: ", "" + position);
             Fragment a = StatusFragment.newInstance();
 
             switch (position) {

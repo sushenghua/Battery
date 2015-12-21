@@ -76,11 +76,6 @@ public class StatusFragment extends Fragment {
                              Bundle savedInstanceState) {
         //Log.d(TAG, "------------>onCreateView");
         View rootView = inflater.inflate(R.layout.fragment_status, container, false);
-//
-//        cpuInfoView.setText(Build.HARDWARE);
-//        manufacturerInfoView.setText(Build.MANUFACTURER);
-//        modelInfoView.setText(Build.MODEL);
-//        buildInfoView.setText(Build.ID);
 
         initHardwareInfoView(rootView);
         initChargeStatusView(rootView);
