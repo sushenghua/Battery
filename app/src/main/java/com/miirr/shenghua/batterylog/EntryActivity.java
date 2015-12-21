@@ -1,12 +1,15 @@
 package com.miirr.shenghua.batterylog;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -42,13 +45,28 @@ public class EntryActivity extends AppCompatActivity {
 
         LanguageActivity.restorePreferedLanguage(this);
 
-        // --- debug ---
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
-        finish();
+//        // --- debug to be deleted later---
+//        Intent intent = new Intent(this, MainActivity.class);
+//        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+//        startActivity(intent);
+//        finish();
+//        // -------------
+
+        // ----debug to be deleted later---
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                100
+        );
+        Log.d("Mac Address ---------->", DeviceInfo.getMacAddress());
+        DeviceInfo.testLocation(this);
         // -------------
 
+        if (AccountActivity.isLoggedIn(getApplicationContext())) {
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            finish();
+        }
 
         setContentView(R.layout.activity_entry);
         mVisible = true;
