@@ -43,7 +43,7 @@ public class EntryActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        LanguageActivity.restorePreferedLanguage(this);
+        LanguageActivity.restorePreferredLanguage(this);
 
 //        // --- debug to be deleted later---
 //        Intent intent = new Intent(this, MainActivity.class);

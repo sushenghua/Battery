@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -38,7 +37,7 @@ public class LanguageActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         PrefsStorageDelegate.initialize(this.getSharedPreferences(PrefsStorageDelegate.PREFS_NAME, Context.MODE_PRIVATE));
-        restorePreferedLanguageIndex();
+        restorePreferredLanguageIndex();
 
         setupLanguageOptionsView();
 
@@ -59,7 +58,7 @@ public class LanguageActivity extends AppCompatActivity {
             if (sLanguageOptionIndex != mSelectedLanguageOptionIndex) {
                 sLanguageOptionIndex = mSelectedLanguageOptionIndex;
                 setLocaleWithLanguageIndex(this, sLanguageOptionIndex);
-                storePreferedLanguageIndex();
+                storePreferredLanguageIndex();
             }
             NavUtils.navigateUpFromSameTask(this);
         }
@@ -121,7 +120,7 @@ public class LanguageActivity extends AppCompatActivity {
         }
     }
 
-    public static void restorePreferedLanguage(Context context) {
+    public static void restorePreferredLanguage(Context context) {
         if (!PrefsStorageDelegate.initialized()) {
             PrefsStorageDelegate.initialize(context.getSharedPreferences(PrefsStorageDelegate.PREFS_NAME, Context.MODE_PRIVATE));
         }
@@ -129,13 +128,13 @@ public class LanguageActivity extends AppCompatActivity {
         setLocaleWithLanguageIndex(context, sLanguageOptionIndex);
     }
 
-    private static void restorePreferedLanguageIndex() {
+    private static void restorePreferredLanguageIndex() {
         if (PrefsStorageDelegate.initialized()) {
             sLanguageOptionIndex = PrefsStorageDelegate.getLanguageIndex();
         }
     }
 
-    private static void storePreferedLanguageIndex() {
+    private static void storePreferredLanguageIndex() {
         if (PrefsStorageDelegate.initialized()) {
             PrefsStorageDelegate.setLanguageIndex(sLanguageOptionIndex);
         }
