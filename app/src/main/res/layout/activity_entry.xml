@@ -2,9 +2,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-
+    android:background="#120D31"
     android:orientation="vertical"
-    tools:context="com.miirr.shenghua.batterylog.EntryActivity">
+    tools:context="com.shenghua.battery.EntryActivity">
 
     <!-- The primary full-screen view. This can be replaced with whatever view
          is needed to present your content, e.g. VideoView, SurfaceView,

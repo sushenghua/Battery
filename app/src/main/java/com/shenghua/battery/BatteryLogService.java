@@ -1,4 +1,4 @@
-package com.miirr.shenghua.batterylog;
+package com.shenghua.battery;
 
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -19,7 +19,7 @@ public class BatteryLogService extends Service {
     private static final String TAG = BatteryLogService.class.getSimpleName();
 
     // broadcast
-    public static final String ACTION_BATTERYSTATUS_CHANGED = "com.miirr.shenghua.batteryLog.CHANGED";
+    public static final String ACTION_BATTERYSTATUS_CHANGED = "com.shenghua.battery.CHANGED";
     private static BroadcastReceiver mBatteryReceiver;
 
     // charge type

@@ -1,4 +1,4 @@
-package com.miirr.shenghua.batterylog;
+package com.shenghua.battery;
 
 import android.content.Context;
 import android.net.ConnectivityManager;

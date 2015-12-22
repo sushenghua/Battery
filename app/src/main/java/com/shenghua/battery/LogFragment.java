@@ -1,4 +1,4 @@
-package com.miirr.shenghua.batterylog;
+package com.shenghua.battery;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;

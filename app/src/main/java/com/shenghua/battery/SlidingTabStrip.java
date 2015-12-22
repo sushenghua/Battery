@@ -1,4 +1,4 @@
-package com.miirr.shenghua.batterylog;
+package com.shenghua.battery;
 
 /*
  * Copyright 2014 Google Inc. All rights reserved.

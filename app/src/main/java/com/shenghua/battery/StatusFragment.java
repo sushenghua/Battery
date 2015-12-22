@@ -1,4 +1,4 @@
-package com.miirr.shenghua.batterylog;
+package com.shenghua.battery;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
