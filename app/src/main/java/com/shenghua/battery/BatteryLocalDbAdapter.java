@@ -66,6 +66,8 @@ public class BatteryLocalDbAdapter {
             boolean uploaded = cursor.getInt(5) != 0;
             sb.append(id + ", " + beginPower + ", " + beginTime + ", " + uploaded + "\n");
         }
+
+        db.close();
         return sb.toString();
     }
 
@@ -88,6 +90,8 @@ public class BatteryLocalDbAdapter {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
+        db.close();
     }
 
     public JSONArray getChargeLog(boolean pickUploaded) {
@@ -145,6 +149,7 @@ public class BatteryLocalDbAdapter {
             e.printStackTrace();
         }
 
+        db.close();
         return ja;
     }
 
