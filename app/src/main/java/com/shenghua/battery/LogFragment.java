@@ -27,7 +27,7 @@ public class LogFragment extends Fragment {
 
     private WebView mWebView;
 
-    private static final String URL = "http://192.168.0.150/battery/app/frontend/web";
+    private static final String URL = "http://192.168.0.150/battery/app/frontend/web/index.php?r=battery%2Fchart";
 
     public static LogFragment newInstance() {
         LogFragment fragment = new LogFragment();
@@ -45,7 +45,7 @@ public class LogFragment extends Fragment {
 
         WebSettings webSettings = mWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
-        webSettings.setBuiltInZoomControls(true);
+//        webSettings.setBuiltInZoomControls(true);
         webSettings.setSupportZoom(true);
 
         mWebView.setWebViewClient(new WebViewClient());
