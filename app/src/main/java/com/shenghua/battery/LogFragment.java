@@ -2,15 +2,23 @@ package com.shenghua.battery;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
+import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
+
+import java.net.HttpURLConnection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by shenghua on 11/14/15.
@@ -19,6 +27,8 @@ public class LogFragment extends Fragment {
 
     private WebView mWebView;
     private Button mButton;
+
+    private static final String URL = "http://192.168.0.150/battery/app/frontend/web";
 
     public static LogFragment newInstance() {
         LogFragment fragment = new LogFragment();
@@ -39,56 +49,46 @@ public class LogFragment extends Fragment {
         webSettings.setBuiltInZoomControls(true);
         webSettings.setSupportZoom(true);
 
+
+//        CookieManager cookieManager = CookieManager.getInstance();
+//        cookieManager.setAcceptCookie(true);
+//        String cookieString = getCookies(getContext());
+//        Log.d("----->", cookieString);
+//        cookieManager.setCookie(URL, cookieString);
+//        cookieManager.removeAllCookie();
+//        CookieSyncManager.createInstance(getContext()).sync();
+//        cookieManager.removeSessionCookie();
+//        CookieSyncManager.getInstance().sync();
+
+
         mWebView.setWebViewClient(new WebViewClient());
+//        mWebView.loadUrl(URL);
 
-        class WebInterface {
-            Context mContext;
-
-            WebInterface(Context c) {
-                mContext = c;
-            }
-
-            byte[] getData() {
-                return String.valueOf("{type: 'column2d',"+
-                         "renderAt: 'chart-container',"+
-                         "dataFormat: 'json',"+
-                          "dataSource: {"+
-                          "chart: {"+
-                                    "caption: \"Quarterly sales summary\","+
-                                        "numberPrefix: \"$\","+
-                                        "decimals: \"2\","+
-                                        "forceDecimals: \"1\""+
-                            "},"+
-                            "data: ["+
-                            "{ label: \"Q1\", value: \"213345\"},"+
-                            "{ label: \"Q2\", value: \"192672\"},"+
-                            "{ label: \"Q3\", value: \"201238\"},"+
-                            "{ label: \"Q4\", value: \"209881\"},"+
-                            "]"+
-                        "};").getBytes();
-            }
-        }
-
-        mWebView.addJavascriptInterface(new WebInterface(getContext()), "Android");
-        mWebView.loadUrl("file:///android_asset/batterylog.html");
-//        mWebView.loadUrl("http://192.168.0.150/battery/app/frontend/web");
-
-//        mButton = (Button) rootView.findViewById(R.id.test);
-//        mButton.setOnClickListener(new View.OnClickListener() {
+        Map<String, String> headers = new HashMap<String, String>();
+        String cookieValue = getCookies(getContext());
+        //Log.d("----->", cookieValue);
+        headers.put("Cookie", cookieValue);
+//        mWebView.setWebViewClient(new WebViewClient() {
 //            @Override
-//            public void onClick(View v) {
-//                Log.d("fuck--->", "bad");
-//                mWebView.loadUrl("javascript:renderBatteryLog()");
+//            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+//                view.loadUrl(url, headers);
+//                return false;
 //            }
 //        });
+        mWebView.loadUrl(URL, headers);
 
         return rootView;
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-//        Log.d("fuck", "bad");
-//        mWebView.loadUrl("javascript:renderBatteryLog()");
+    private String getCookies(Context context) {
+
+        String mergedCookie = "";//"7eeb1890096146dc392b6a2443b0f6475c182de66a05cad95d1062de877488b2a%3A2%3A%7Bi%3A0%3Bs%3A5%3A%22_csrf%22%3Bi%3A1%3Bs%3A32%3A%22rf92s_paqTDULaEwe-S1hChZhZDZE924%22%3B%7D";
+        mergedCookie = PrefsStorageDelegate.getStringValue("CsrfCookes");
+
+        String sessionCookie = PrefsStorageDelegate.getStringValue("SessionCookie");
+        if (sessionCookie.length() > 0) {
+            mergedCookie = mergedCookie + ";" + sessionCookie;
+        }
+        return mergedCookie;
     }
 }
