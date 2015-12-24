@@ -13,10 +13,8 @@ public class BootReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent.getAction().equalsIgnoreCase(ACTION_BOOT)) {
-            Intent monitorIntent = new Intent(context, BatteryLogService.class);
-
-//            monitorIntent.putExtra(BatteryLogService.HANDLE_REBOOT, true);
-            context.startService(monitorIntent);
+            Intent bootIntent = new Intent(context, BatteryLogService.class);
+            context.startService(bootIntent);
         }
     }
 }
