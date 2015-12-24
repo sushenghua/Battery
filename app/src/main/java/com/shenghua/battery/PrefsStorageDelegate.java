@@ -15,6 +15,7 @@ public class PrefsStorageDelegate {
 
     private static final String PLUGIN_POWER = "PluginPower";
     private static final String PLUGIN_TIME = "PluginTime";
+    private static final String CHARGE_FULL_TIME = "ChargeFullTime";
 
     private static final String LANGUAGE_INDEX = "LanguageIndex";
 
@@ -70,17 +71,27 @@ public class PrefsStorageDelegate {
         return prefs.getInt(PLUGIN_POWER, -1);
     }
 
-    public static long getPluginTime() {
-        return prefs.getLong(PLUGIN_TIME, 0);
-    }
-
     public static void setPluginPower(int power) {
         SharedPreferences.Editor editor = prefs.edit();
         editor.putInt(PLUGIN_POWER, power);
         editor.commit();
     }
 
+    public static long getPluginTime() {
+        return prefs.getLong(PLUGIN_TIME, 0);
+    }
+
     public static void setPluginTime(long time) {
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putLong(PLUGIN_TIME, time);
+        editor.commit();
+    }
+
+    public static long getChargeFullTime() {
+        return prefs.getLong(CHARGE_FULL_TIME, 0);
+    }
+
+    public static void setChargeFullTime(long time) {
         SharedPreferences.Editor editor = prefs.edit();
         editor.putLong(PLUGIN_TIME, time);
         editor.commit();
