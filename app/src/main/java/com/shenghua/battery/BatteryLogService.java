@@ -168,10 +168,8 @@ public class BatteryLogService extends Service {
                                 || newChargeType == BATTERY_WIRELESS_CHARGE) {
                             // assume the launch as the plugin
                             Log.d(TAG, "--->launch (as plugin)");
-                            mPluginPower = mCurrentPower;
-                            mPluginTime = timeNow;
-                            PrefsStorageDelegate.setPluginPower(mPluginPower);
-                            PrefsStorageDelegate.setPluginTime(mPluginTime);
+                            PrefsStorageDelegate.setPluginPower(mCurrentPower);
+                            PrefsStorageDelegate.setPluginTime(timeNow);
                         }
                         else { // no power supply
                             // this service launched when having power supply plugged in
@@ -181,10 +179,8 @@ public class BatteryLogService extends Service {
 
                     case BATTERY_NO_CHARGE: // chargeType can only be either "usb or ac charge"
                         Log.d(TAG, "--->plugin");
-                        mPluginPower = mCurrentPower;
-                        mPluginTime = timeNow;
-                        PrefsStorageDelegate.setPluginPower(mPluginPower);
-                        PrefsStorageDelegate.setPluginTime(mPluginTime);
+                        PrefsStorageDelegate.setPluginPower(mCurrentPower);
+                        PrefsStorageDelegate.setPluginTime(timeNow);
                         break;
 
                     case BATTERY_USB_CHARGE:

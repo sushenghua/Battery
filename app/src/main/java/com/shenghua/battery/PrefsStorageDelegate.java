@@ -104,7 +104,7 @@ public class PrefsStorageDelegate {
 
     public static void setChargeFullTime(long time) {
         SharedPreferences.Editor editor = prefs.edit();
-        editor.putLong(PLUGIN_TIME, time);
+        editor.putLong(CHARGE_FULL_TIME, time);
         editor.commit();
     }
 
