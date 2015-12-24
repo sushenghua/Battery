@@ -5,8 +5,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.BatteryManager;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -28,7 +33,7 @@ public class BatteryLogService extends Service {
     public static final int BATTERY_AC_CHARGE = 0;
     public static final int BATTERY_USB_CHARGE = 1;
     public static final int BATTERY_WIRELESS_CHARGE = 2;
-    private static int currentChargeType = BATTERY_UNDEFINED_CHARGESTATUS;
+    //private static int currentChargeType = BATTERY_UNDEFINED_CHARGESTATUS;
 
     // temperature, voltage, health consts
     public static final int BATTERY_INVALID_TEMPERATURE = -100;
@@ -88,6 +93,8 @@ public class BatteryLogService extends Service {
             Intent intent = registerReceiver(mBatteryReceiver, filter);
             batteryChangeCheck(intent);
         }
+
+        registerLocationService();
     }
 
     public void onDestory() {
@@ -98,7 +105,7 @@ public class BatteryLogService extends Service {
     }
 
     public static int getChargeType() {
-        return currentChargeType;
+        return PrefsStorageDelegate.getChargeType();
     }
 
     public static int getCurrentLevel() {
@@ -152,6 +159,7 @@ public class BatteryLogService extends Service {
                 PrefsStorageDelegate.setChargeFullTime(timeNow);
             }
 
+            int currentChargeType = PrefsStorageDelegate.getChargeType();
             if (newChargeType != currentChargeType) {
                 switch (currentChargeType) {
                     case BATTERY_UNDEFINED_CHARGESTATUS: // first time of launch this service
@@ -198,7 +206,8 @@ public class BatteryLogService extends Service {
 
                         break;
                 }
-                currentChargeType = newChargeType;
+                //currentChargeType = newChargeType;
+                PrefsStorageDelegate.setChargeType(newChargeType);
             }
             broadcastActionBatterystatusChanged();
         }
@@ -264,5 +273,23 @@ public class BatteryLogService extends Service {
         } else {
             Log.w(TAG, "network unavailable!");
         }
+    }
+
+    private void registerLocationService() {
+
+        LocationListener listener = new LocationListener() {
+
+            public void onLocationChanged(Location location) {
+                DeviceInfo.setLocation(location);
+                Log.d("--->Location callback", location.toString());
+                DeviceInfo.unregisterLocationListener(BatteryLogService.this);
+            }
+
+            public void onStatusChanged(String provider, int status, Bundle extras) {}
+            public void onProviderEnabled(String provider) {}
+            public void onProviderDisabled(String provider) {}
+        };
+
+        DeviceInfo.registerLocationListener(this, listener);
     }
 }

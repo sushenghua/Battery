@@ -13,6 +13,7 @@ public class PrefsStorageDelegate {
     private static final String EMAIL = "Email";
     private static final String PASSWORD = "Password";
 
+    private static final String CHARGE_TYPE = "ChargeType";
     private static final String PLUGIN_POWER = "PluginPower";
     private static final String PLUGIN_TIME = "PluginTime";
     private static final String CHARGE_FULL_TIME = "ChargeFullTime";
@@ -64,6 +65,16 @@ public class PrefsStorageDelegate {
     public static void setStringValue(String key, String value) {
         SharedPreferences.Editor editor = prefs.edit();
         editor.putString(key, value);
+        editor.commit();
+    }
+
+    public static int getChargeType() {
+        return prefs.getInt(CHARGE_TYPE, BatteryLogService.BATTERY_UNDEFINED_CHARGESTATUS);
+    }
+
+    public static void setChargeType(int type) {
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putInt(CHARGE_TYPE, type);
         editor.commit();
     }
 

@@ -53,12 +53,11 @@ public class EntryActivity extends AppCompatActivity {
 //        // -------------
 
         // ----debug to be deleted later---
-        ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                100
-        );
-        Log.d("Mac Address ---------->", DeviceInfo.getMacAddress());
-        DeviceInfo.testLocation(this);
+//        ActivityCompat.requestPermissions(this,
+//                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+//                100
+//        );
+        DeviceInfo.test(this);
         // -------------
 
         if (AccountActivity.isLoggedIn(getApplicationContext())) {

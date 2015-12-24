@@ -1,11 +1,12 @@
 package com.shenghua.battery;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
-import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
 import org.json.JSONObject;
@@ -17,12 +18,14 @@ import java.io.IOException;
 import java.net.NetworkInterface;
 import java.util.Collections;
 import java.util.List;
-import java.util.jar.Manifest;
 
 /**
  * Created by shenghua on 12/21/15.
  */
 public class DeviceInfo {
+
+    private static Location sLocation = null;
+    private static LocationListener sLocationListener = null;
 
     public static JSONObject getDeviceInfo() {
         return null;
@@ -84,13 +87,14 @@ public class DeviceInfo {
         return getMacAddress("wlan0");
     }
 
-    public static void testLocation(Context context) {
+    public static void test(Context context) {
+        Log.d("--->Device Mac Address", DeviceInfo.getMacAddress());
         Location l = getLastBestLocation(context);
         if (l != null) {
-            Log.d("location ------->", l.toString());
+            Log.d("--->Device Location", l.toString());
         }
         else {
-            Log.d("location ------->", "null");
+            Log.d("--->Device Location", "null");
         }
     }
 
@@ -120,13 +124,17 @@ public class DeviceInfo {
         }*/
     }
 
+    public static void setLocation(Location location) {
+        sLocation = location;
+    }
+
     private static Location getLastBestLocation(Context context) {
 
         PackageManager pm = context.getPackageManager();
-        int permission = pm.checkPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION,
+        int permission = pm.checkPermission(Manifest.permission.ACCESS_FINE_LOCATION,
                 context.getPackageName());
-        if (permission != PackageManager.PERMISSION_GRANTED) {
-
+        if (permission == PackageManager.PERMISSION_GRANTED) {
+            Log.d("--->Location Service", "-----> permission granted");
             LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
             Location locationGPS = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             Location locationNet = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
@@ -145,5 +153,29 @@ public class DeviceInfo {
             }
         }
         return null;
+    }
+
+    public static void registerLocationListener(Context context, LocationListener listener) {
+        PackageManager pm = context.getPackageManager();
+        int permission = pm.checkPermission(Manifest.permission.ACCESS_FINE_LOCATION,
+                context.getPackageName());
+        if (permission == PackageManager.PERMISSION_GRANTED) {
+            LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+            sLocationListener = listener;
+            lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, listener);
+        }
+    }
+
+    public static void unregisterLocationListener(Context context) {
+        PackageManager pm = context.getPackageManager();
+        int permission = pm.checkPermission(Manifest.permission.ACCESS_FINE_LOCATION,
+                context.getPackageName());
+        if (permission == PackageManager.PERMISSION_GRANTED) {
+            LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+            if (sLocationListener != null) {
+                lm.removeUpdates(sLocationListener);
+                sLocationListener = null;
+            }
+        }
     }
 }
