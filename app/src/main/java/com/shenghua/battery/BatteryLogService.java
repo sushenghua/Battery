@@ -196,7 +196,7 @@ public class BatteryLogService extends Service {
                         mPluginPower = PrefsStorageDelegate.getPluginPower();
                         mPluginTime = PrefsStorageDelegate.getPluginTime();
 
-                        if (mPlugoutPower != mPluginPower) // record this charge cycle
+                        if (mPlugoutPower > mPluginPower) // record this charge cycle
                             new SaveBatteryChargeCycleAsync().execute();
 
                         // clear charge flag
@@ -242,8 +242,9 @@ public class BatteryLogService extends Service {
         // save to local db anyway
         Log.d(TAG, "--->save charge log to local db");
         BatteryLocalDbAdapter dbAdapter = new BatteryLocalDbAdapter(this);
-        long chargeEndTime = (mPlugoutPower == 100)? PrefsStorageDelegate.getChargeFullTime()
-                : mPlugoutTime;
+        long chargeFullTime = PrefsStorageDelegate.getChargeFullTime();
+        long chargeEndTime = (mPlugoutPower == 100 && chargeFullTime != BATTERY_TIME_UNDEFINED)?
+                chargeFullTime : mPlugoutTime;
         dbAdapter.insertLog(mPluginPower, mPluginTime,
                             mPlugoutPower, chargeEndTime,
                             mPlugoutTime, chargeEndTime - mPluginTime, false);
