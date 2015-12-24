@@ -40,12 +40,12 @@ public class BatteryLogService extends Service {
     private static int health;
 
     // power
-    private static final int BATTERY_UNKNOWN_POWER = -1;
-    private static int mCurrentPower = BATTERY_UNKNOWN_POWER;
-    private static int mPluginPower = BATTERY_UNKNOWN_POWER;
-    private static int mPlugoutPower = BATTERY_UNKNOWN_POWER;
+    public static final int BATTERY_POWER_UNKNOWN = -1;
+    private static int mCurrentPower = BATTERY_POWER_UNKNOWN;
+    private static int mPluginPower = BATTERY_POWER_UNKNOWN;
+    private static int mPlugoutPower = BATTERY_POWER_UNKNOWN;
 
-    private static final int BATTERY_TIME_UNDEFINED = 0;
+    public static final int BATTERY_TIME_UNDEFINED = 0;
     private static long mPluginTime = BATTERY_TIME_UNDEFINED;
     private static long mPlugoutTime = BATTERY_TIME_UNDEFINED;
     private static long mChargeFullTime = BATTERY_TIME_UNDEFINED;
@@ -193,7 +193,7 @@ public class BatteryLogService extends Service {
 
                         // clear charge flag
                         PrefsStorageDelegate.setPluginTime(BATTERY_TIME_UNDEFINED);
-                        PrefsStorageDelegate.setPluginPower(BATTERY_UNKNOWN_POWER);
+                        PrefsStorageDelegate.setPluginPower(BATTERY_POWER_UNKNOWN);
                         PrefsStorageDelegate.setChargeFullTime(BATTERY_TIME_UNDEFINED);
 
                         break;

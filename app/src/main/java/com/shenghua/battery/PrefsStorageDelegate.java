@@ -68,7 +68,7 @@ public class PrefsStorageDelegate {
     }
 
     public static int getPluginPower() {
-        return prefs.getInt(PLUGIN_POWER, -1);
+        return prefs.getInt(PLUGIN_POWER, BatteryLogService.BATTERY_POWER_UNKNOWN);
     }
 
     public static void setPluginPower(int power) {
@@ -78,7 +78,7 @@ public class PrefsStorageDelegate {
     }
 
     public static long getPluginTime() {
-        return prefs.getLong(PLUGIN_TIME, 0);
+        return prefs.getLong(PLUGIN_TIME, BatteryLogService.BATTERY_TIME_UNDEFINED);
     }
 
     public static void setPluginTime(long time) {
@@ -88,7 +88,7 @@ public class PrefsStorageDelegate {
     }
 
     public static long getChargeFullTime() {
-        return prefs.getLong(CHARGE_FULL_TIME, 0);
+        return prefs.getLong(CHARGE_FULL_TIME, BatteryLogService.BATTERY_TIME_UNDEFINED);
     }
 
     public static void setChargeFullTime(long time) {
