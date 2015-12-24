@@ -207,7 +207,7 @@ public class BatteryLogService extends Service {
     private int calculateBatteryLevel(Intent intent) {
         int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
         int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-        return  (int) (Math.round(level/(float)scale) * 100);
+        return  (int) (Math.round((float)level / scale * 100));
     }
 
     private void broadcastActionBatterystatusChanged() {
