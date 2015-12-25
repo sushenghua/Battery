@@ -170,6 +170,8 @@ public class BatteryLogService extends Service {
                             Log.d(TAG, "--->launch (as plugin)");
                             PrefsStorageDelegate.setPluginPower(mCurrentPower);
                             PrefsStorageDelegate.setPluginTime(timeNow);
+                            if (mCurrentPower != 100)
+                                PrefsStorageDelegate.setChargeFullTime(BATTERY_TIME_UNDEFINED);
                         }
                         else { // no power supply
                             // this service launched when having power supply plugged in
@@ -181,6 +183,8 @@ public class BatteryLogService extends Service {
                         Log.d(TAG, "--->plugin");
                         PrefsStorageDelegate.setPluginPower(mCurrentPower);
                         PrefsStorageDelegate.setPluginTime(timeNow);
+                        if (mCurrentPower != 100)
+                            PrefsStorageDelegate.setChargeFullTime(BATTERY_TIME_UNDEFINED);
                         break;
 
                     case BATTERY_USB_CHARGE:
