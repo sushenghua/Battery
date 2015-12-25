@@ -6,9 +6,14 @@
     android:background="#222"
     android:weightSum="1">
 
-    <WebView
-        android:id="@+id/webView"
+    <!--<com.github.mikephil.charting.charts.CombinedChart-->
+        <!--android:id="@+id/chart"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="300dp" />-->
+
+    <com.shenghua.battery.chart.BatteryCombinedChart
+        android:id="@+id/chart"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="300dp" />
 
 </LinearLayout>

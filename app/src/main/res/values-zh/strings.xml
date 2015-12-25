@@ -72,4 +72,9 @@
 
     <string name="battery_usage_app_not_found">未发现系统电池应用</string>
 
+    <!-- battery log fragment -->
+    <string name="begin_power">起始电量</string>
+    <string name="charged_power">充电电量</string>
+
+
 </resources>

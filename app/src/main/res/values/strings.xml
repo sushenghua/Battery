@@ -75,4 +75,9 @@
 
     <string name="battery_usage_app_not_found">No battery usage app found</string>
 
+    <!-- battery log fragment -->
+    <string name="begin_power">Beginning power</string>
+    <string name="charged_power">Power charged</string>
+
+
 </resources>
