@@ -1,7 +1,9 @@
 package com.shenghua.battery;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -19,6 +21,10 @@ import android.widget.Button;
 import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
 
 /**
  * Created by shenghua on 11/14/15.
@@ -49,11 +55,37 @@ public class LogFragment extends Fragment {
         webSettings.setSupportZoom(true);
 
         mWebView.setWebViewClient(new WebViewClient());
+
+        return rootView;
+    }
+
+    private void loadPage() {
+        CookieManager cm = CookieManager.getInstance();
+        cm.removeAllCookie();
+        cm.setAcceptCookie(true);
         Map<String, String> headers = new HashMap<String, String>();
         headers.put("Cookie", getCookies(getContext()));
         mWebView.loadUrl(URL, headers);
+    }
 
-        return rootView;
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadPage();
+//        new Timer().schedule(
+//                new TimerTask() {
+//                    @Override
+//                    public void run() {
+//                        LogFragment.this.getActivity().runOnUiThread(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                loadPage();
+//                            }
+//                        });
+//                    }
+//                },
+//                2000
+//        );
     }
 
     private String getCookies(Context context) {
