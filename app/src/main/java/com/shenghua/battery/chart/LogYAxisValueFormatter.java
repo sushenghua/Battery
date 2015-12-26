@@ -1,7 +1,10 @@
 package com.shenghua.battery.chart;
 
+import android.content.Context;
+
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.formatter.YAxisValueFormatter;
+import com.shenghua.battery.R;
 
 import java.text.DecimalFormat;
 
@@ -14,11 +17,18 @@ public class LogYAxisValueFormatter implements YAxisValueFormatter {
     private String mMeasureUnit;
 
     public static LogYAxisValueFormatter createPowerAxisValueFormatter() {
-        return new LogYAxisValueFormatter("##0", "%");
+        return new LogYAxisValueFormatter("##0", "");
+        //return new LogYAxisValueFormatter("##0", "%");
     }
 
-    public static LogYAxisValueFormatter createDurationAxisValueFormatter() {
-        return new LogYAxisValueFormatter("###,##0.0", "min");
+    public static LogYAxisValueFormatter createRateAxisValueFormatter(Context context) {
+        return new LogYAxisValueFormatter("##0.0", "");
+        //return new LogYAxisValueFormatter("###,##0.0", context.getString(R.string.chart_charge_rate_unit));
+    }
+
+    public static LogYAxisValueFormatter createDurationAxisValueFormatter(Context context) {
+        return new LogYAxisValueFormatter("###,##0.0", "");
+        //return new LogYAxisValueFormatter("###,##0.0", context.getString(R.string.chart_charge_duration_unit));
     }
 
     public LogYAxisValueFormatter(String format, String measureUnit) {

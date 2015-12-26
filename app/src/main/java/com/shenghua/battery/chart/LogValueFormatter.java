@@ -1,8 +1,11 @@
 package com.shenghua.battery.chart;
 
+import android.content.Context;
+
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.github.mikephil.charting.utils.ViewPortHandler;
+import com.shenghua.battery.R;
 
 import java.text.DecimalFormat;
 
@@ -18,8 +21,12 @@ public class LogValueFormatter implements ValueFormatter {
         return new LogValueFormatter("##0", "%");
     }
 
-    public static LogValueFormatter createDurationValueFormatter() {
-        return new LogValueFormatter("###,##0.0", "min");
+    public static LogValueFormatter createRateValueFormatter(Context context) {
+        return new LogValueFormatter("###,##0.0", context.getString(R.string.chart_charge_rate_unit));
+    }
+
+    public static LogValueFormatter createDurationValueFormatter(Context context) {
+        return new LogValueFormatter("###,##0.0", context.getString(R.string.chart_charge_duration_unit));
     }
 
     public LogValueFormatter(String format, String measureUnit) {

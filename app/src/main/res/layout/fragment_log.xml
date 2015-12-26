@@ -11,9 +11,20 @@
         <!--android:layout_width="match_parent"-->
         <!--android:layout_height="300dp" />-->
 
-    <com.shenghua.battery.chart.BatteryCombinedChart
-        android:id="@+id/chart"
+    <ListView
+        android:id="@+id/chart_list_view"
         android:layout_width="match_parent"
-        android:layout_height="300dp" />
+        android:layout_height="match_parent" />
+
+    <!--<Button-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:text="New Button"-->
+        <!--android:id="@+id/button" />-->
+
+    <!--<com.shenghua.battery.chart.BatteryCombinedChart-->
+        <!--android:id="@+id/chart"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="300dp" />-->
 
 </LinearLayout>

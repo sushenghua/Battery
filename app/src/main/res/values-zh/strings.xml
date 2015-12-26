@@ -73,8 +73,13 @@
     <string name="battery_usage_app_not_found">未发现系统电池应用</string>
 
     <!-- battery log fragment -->
-    <string name="begin_power">起始电量</string>
-    <string name="charged_power">充电电量</string>
+    <string name="chart_begin_power">起始电量 (%)</string>
+    <string name="chart_charged_power">充电电量 (%)</string>
+    <string name="chart_charge_rate">充电效率 (%/分钟)</string>
+    <string name="chart_charge_duration">充电耗时 (分钟)</string>
+    <string name="chart_charge_duration_unit">分钟</string>
+    <string name="chart_charge_rate_unit">%/分钟</string>
+    <string name="chart_x_axis">开始日期</string>
 
 
 </resources>

@@ -27,4 +27,9 @@
     <color name="batteryLiquidGradientDarker">#4D4D4D</color>
     <color name="batteryLiguidGradientLighter">#FFFFFF</color>
 
+    <color name="battery_log_begin_power_color">#0075c2</color>
+    <color name="battery_log_charged_power_color">#1aaf5d</color>
+    <color name="battery_log_charge_duration_color">#f2c500</color>
+    <color name="battery_log_charge_rate_color">#7474c0</color>
+
 </resources>

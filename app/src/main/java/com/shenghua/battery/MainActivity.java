@@ -78,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
 //        long id = dbAdapter.insertLog(20, 12032300, 60, 12032330, 12032335, 35, true);
 //        Log.d("DB insert test", ""+id);
 //        dbAdapter.markChargeLogAsUploaded(dbAdapter.getChargeLog(false));
+        Log.d("DB---all--->", dbAdapter.getAll().toString());
         Log.d("DB---uploaded--->", dbAdapter.getChargeLog(true).toString());
         Log.d("DB---unuploaded--->", dbAdapter.getChargeLog(false).toString());
 
@@ -131,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
             //Log.d("pager pos: ", "" + position);
-            Fragment a = StatusFragment.newInstance();
+            //Fragment a = StatusFragment.newInstance();
 
             switch (position) {
                 case 0:

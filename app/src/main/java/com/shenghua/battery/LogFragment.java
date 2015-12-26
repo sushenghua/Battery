@@ -3,12 +3,15 @@ package com.shenghua.battery;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
+import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.ListView;
 
-import com.github.mikephil.charting.charts.BarChart;
-import com.github.mikephil.charting.charts.CombinedChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
@@ -19,9 +22,14 @@ import com.github.mikephil.charting.data.CombinedData;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.formatter.YAxisValueFormatter;
 import com.shenghua.battery.chart.BatteryCombinedChart;
 import com.shenghua.battery.chart.LogValueFormatter;
 import com.shenghua.battery.chart.LogYAxisValueFormatter;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 
@@ -30,7 +38,17 @@ import java.util.ArrayList;
  */
 public class LogFragment extends Fragment {
 
-    private CombinedChart mChart;
+    private static final int MAX_VISIBLE_VALUE_COUNT = 50;
+    private static final float AXIS_WIDTH = 0.8f;
+    private static final float CHART_VALUE_TEXT_SIZE = 10;
+
+    private ListView mListView;
+    private BatteryCombinedChart mPowerChart;
+    private BatteryCombinedChart mRateChart;
+
+    private ArrayList<String> mXLabels = null;
+
+    private JSONArray mLogs;
 
     public static LogFragment newInstance() {
         LogFragment fragment = new LogFragment();
@@ -44,42 +62,90 @@ public class LogFragment extends Fragment {
 
         View rootView = inflater.inflate(R.layout.fragment_log, container, false);
 
-        mChart = (BatteryCombinedChart) rootView.findViewById(R.id.chart);
+        mListView = (ListView) rootView.findViewById(R.id.chart_list_view);
+        int height =  600;
 
-        mChart.setDescription("");
-        mChart.setMaxVisibleValueCount(60);
+        mPowerChart = createChart(LogYAxisValueFormatter.createPowerAxisValueFormatter());
+        mPowerChart.setMinimumHeight(height);
+        mRateChart = createChart(LogYAxisValueFormatter.createRateAxisValueFormatter(getContext()));
+        mRateChart.setMinimumHeight(height);
 
-        mChart.setPinchZoom(false);
-//        mChart.setScaleXEnabled(false);
-        mChart.setDrawValueAboveBar(false);
+//        mListView.setAdapter(new CombinedChartAdapter(getContext()));
+        mListView.setAdapter(new CombinedChartAdapter());
 
-        mChart.setDrawGridBackground(false);
-        mChart.setDrawBarShadow(false);
+        fetchLogsFromDb();
 
-//        mChart.setDrawOrder(new CombinedChart.DrawOrder[]{
-//                CombinedChart.DrawOrder.BAR, CombinedChart.DrawOrder.LINE
-//        });
+        return rootView;
+    }
 
-        float axisLineWidth = 0.8f;
+    private class CombinedChartAdapter extends BaseAdapter {
+        @Override
+        public int getCount() {
+            return 2;
+        }
+        @Override
+        public Object getItem(int position) {
+            if (position == 0)
+                return mPowerChart;
+            else if (position == 1)
+                return mRateChart;
+            return null;
+        }
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            if (position == 0)
+                return mPowerChart;
+            else if (position == 1)
+                return mRateChart;
+            return null;
+        }
+    }
 
-        mChart.getAxisLeft().setValueFormatter(LogYAxisValueFormatter.createPowerAxisValueFormatter());
-        mChart.getAxisLeft().setTextColor(Color.LTGRAY);
-        mChart.getAxisLeft().setAxisLineWidth(axisLineWidth);
-//        mChart.getAxisLeft().setDrawGridLines(false);
-//        mChart.getAxisLeft().enableGridDashedLine(10f, 10f, 0);
+    public BatteryCombinedChart createChart(YAxisValueFormatter leftYAxisFormatter) {
 
-        mChart.getAxisRight().setValueFormatter(LogYAxisValueFormatter.createDurationAxisValueFormatter());
-        mChart.getAxisRight().setTextColor(Color.LTGRAY);
-        mChart.getAxisRight().setDrawGridLines(false);
-        mChart.getAxisRight().setAxisLineWidth(axisLineWidth);
+        BatteryCombinedChart chart = new BatteryCombinedChart(getContext());
 
-        mChart.getXAxis().setPosition(XAxis.XAxisPosition.BOTTOM);
-        mChart.getXAxis().setTextColor(Color.LTGRAY);
-        mChart.getXAxis().setDrawGridLines(false);
-        mChart.getXAxis().setAxisLineWidth(axisLineWidth);
-//        mChart.getXAxis().enableGridDashedLine(10f, 10f, 10f);
+        chart.setDescription("");
+        chart.setMaxVisibleValueCount(MAX_VISIBLE_VALUE_COUNT);
 
-        Legend l = mChart.getLegend();
+        chart.setPinchZoom(false);
+        //chart.setScaleXEnabled(false);
+        chart.setDrawValueAboveBar(false);
+
+        chart.setDrawGridBackground(false);
+        chart.setDrawBarShadow(false);
+
+        //mPowerChart.setDrawOrder(new CombinedChart.DrawOrder[]{
+        //        CombinedChart.DrawOrder.BAR, CombinedChart.DrawOrder.LINE
+        //});
+
+        YAxis leftY = chart.getAxisLeft();
+        //leftY.setTextColor(Color.LTGRAY);
+        leftY.setTextColor(Color.WHITE);
+        leftY.setAxisLineWidth(AXIS_WIDTH);
+        leftY.setValueFormatter(leftYAxisFormatter);
+        //leftY.setDrawGridLines(false);
+        //leftY.enableGridDashedLine(10f, 10f, 0);
+
+        YAxis rightY = chart.getAxisRight();
+        //rightY.setTextColor(Color.LTGRAY);
+        rightY.setTextColor(ContextCompat.getColor(getContext(), R.color.battery_log_charge_duration_color));
+        rightY.setAxisLineWidth(AXIS_WIDTH);
+        rightY.setValueFormatter(LogYAxisValueFormatter.createDurationAxisValueFormatter(getContext()));
+        rightY.setDrawGridLines(false);
+
+        XAxis xAxis = chart.getXAxis();
+        xAxis.setTextColor(Color.LTGRAY);
+        xAxis.setAxisLineWidth(AXIS_WIDTH);
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setDrawGridLines(false);
+        //xAxis.enableGridDashedLine(10f, 10f, 10f);
+
+        Legend l = chart.getLegend();
         l.setPosition(Legend.LegendPosition.BELOW_CHART_CENTER);
         l.setFormSize(8f);
         l.setFormToTextSpace(4f);
@@ -88,137 +154,179 @@ public class LogFragment extends Fragment {
 
         // http://developer.android.com/guide/topics/graphics/hardware-accel.html
         // Same type shaders inside ComposeShader not supported by Hardware-acceleration
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-//            mChart.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+        //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+        //    mPowerChart.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+        //}
+        return chart;
+    }
+
+    private ArrayList<String> getXLabels(boolean forceUpdate) {
+
+        if (mXLabels == null || forceUpdate) {
+            
+            mXLabels = new ArrayList<>();
+//        for (int i = 0; i < 5; i++) {
+////            xLabels.add("2015-12-25, 23:00 "+i);
+//            xLabels.add(
+//                    DateUtils.formatDateTime(getContext(),
+//                            System.currentTimeMillis(),
+//                            DateUtils.FORMAT_NUMERIC_DATE
+//                                    | DateUtils.FORMAT_SHOW_YEAR
+//                                    | DateUtils.FORMAT_SHOW_DATE
+//                                    | DateUtils.FORMAT_SHOW_TIME));
 //        }
+            try {
+                for (int i = mLogs.length() - 1; i >= 0; --i) {
+                    JSONObject log = mLogs.getJSONObject(i);
+                    mXLabels.add(
+                            DateUtils.formatDateTime(getContext(), log.getLong("bt") * 1000,
+                                    DateUtils.FORMAT_NUMERIC_DATE
+                                            | DateUtils.FORMAT_SHOW_YEAR
+                                            | DateUtils.FORMAT_SHOW_DATE
+                                            | DateUtils.FORMAT_SHOW_TIME)
+                    );
 
-        return rootView;
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        return mXLabels;
     }
 
-    public BarData generateTestData() {
-        ArrayList<String> xVals = new ArrayList<String>();
-        for (int i = 0; i < 5; i++) {
-            xVals.add("col "+i);
-        }
-
-        ArrayList<BarEntry> yVals1 = new ArrayList<BarEntry>();
-
-        for (int i = 0; i < 5; i++) {
-            float mult = 5;
-            float val1 = (int) (Math.random() * mult) + mult / 1;
-//            val1 = 100f;
-            float val2 = (int) (Math.random() * mult) + mult / 1;
-
-            yVals1.add(new BarEntry(new float[] { val1, val2 }, i));
-        }
-
-        BarDataSet set1 = new BarDataSet(yVals1, "");
-        set1.setColors(getColors());
-        set1.setValueTextColor(Color.WHITE);
-        set1.setStackLabels(new String[]{getString(R.string.begin_power), getString(R.string.charged_power)});
-
-        ArrayList<BarEntry> yVals2 = new ArrayList<>();
-        for (int i = 0; i < 5; i++) {
-            float val = (float) (Math.random() * 5) + 3;
-            yVals2.add(new BarEntry(val, i));
-        }
-        BarDataSet set2 = new BarDataSet(yVals2, "Company B");
-        set2.setColor(Color.rgb(164, 228, 251));
-
-        ArrayList<BarDataSet> dataSets = new ArrayList<BarDataSet>();
-        dataSets.add(set1);
-        dataSets.add(set2);
-        BarData data = new BarData(xVals, dataSets);
-        data.setValueTextSize(10);
-        data.setValueFormatter(LogValueFormatter.createPowerValueFormatter());
-
-        return data;
-    }
-
-    public void drawChart() {
-
-        ArrayList<String> xLabels = new ArrayList<String>();
-        for (int i = 0; i < 5; i++) {
-            xLabels.add("2015-12-25, 23:00 "+i);
-        }
-
-
-        CombinedData data = new CombinedData(xLabels);
-        data.setData(generatePowerBarData());
-        data.setData(generateDurationLineData());
-
-//        mChart.setDrawValueAboveBar(true);
-
-        mChart.setData(data);
-        mChart.invalidate();
-    }
-
-    private BarData generatePowerBarData() {
+    private BarData getPowerBarData() {
 
         BarData data = new BarData();
 
         ArrayList<BarEntry> entries =  new ArrayList<>();
-        for (int i = 0; i < 3; i++) {
-            float val1 = (int) (Math.random() * 100 - 0);
-            float val2 = (int) (Math.random() * (100-Math.abs(val1)));
-            entries.add(new BarEntry(new float[]{val1, val2}, i));
+//        for (int i = 0; i < 3; i++) {
+//            float val1 = (int) (Math.random() * 100 - 0);
+//            float val2 = (int) (Math.random() * (100-Math.abs(val1)));
+//            entries.add(new BarEntry(new float[]{val1, val2}, i));
+//        }
+//        entries.add(new BarEntry(new float[]{3, 4}, 3));
+//        entries.add(new BarEntry(new float[]{-4, -1}, 4));
+        try {
+            for (int i = mLogs.length()-1, j = 0; i >= 0; --i, ++j) {
+                JSONObject log = mLogs.getJSONObject(i);
+                entries.add(new BarEntry(
+                        new float[]{log.getInt("bp"), log.getInt("ep") - log.getInt("bp")}, j)
+                );
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
-        entries.add(new BarEntry(new float[]{3, 4}, 3));
-        entries.add(new BarEntry(new float[]{-4, -1}, 4));
 
-        BarDataSet set = new BarDataSet(entries, "");
-        set.setColors(getColors());
-        set.setValueTextColor(Color.WHITE);
-        set.setStackLabels(new String[]{getString(R.string.begin_power), getString(R.string.charged_power)});
+        BarDataSet entrySet = new BarDataSet(entries, "");
 
-        set.setAxisDependency(YAxis.AxisDependency.LEFT);
+        entrySet.setColors(new int[]{
+                ContextCompat.getColor(getContext(), R.color.battery_log_begin_power_color),
+                ContextCompat.getColor(getContext(), R.color.battery_log_charged_power_color)});
+        entrySet.setValueTextColor(Color.WHITE);
+        entrySet.setStackLabels(new String[]{
+                getString(R.string.chart_begin_power),
+                getString(R.string.chart_charged_power)});
 
-        data.addDataSet(set);
-        data.setValueTextSize(10);
+        entrySet.setAxisDependency(YAxis.AxisDependency.LEFT);
+
+        data.addDataSet(entrySet);
+        data.setValueTextSize(CHART_VALUE_TEXT_SIZE);
         data.setValueFormatter(LogValueFormatter.createPowerValueFormatter());
 
         return data;
     }
 
-    private LineData generateDurationLineData() {
-        LineData data = new LineData();
+    private BarData getRateBarData() {
 
-        ArrayList<Entry> entries =  new ArrayList<>();
-        for (int i = 0; i < 5; i++) {
-            float val =(float) (Math.random() * 5 + Math.random()/3);
-            entries.add(new Entry(val, i));
+        BarData data = new BarData();
+        ArrayList<BarEntry> entries =  new ArrayList<>();
+        try {
+            for (int i = mLogs.length()-1, j = 0; i >= 0; --i, ++j) {
+                JSONObject log = mLogs.getJSONObject(i);
+                float duration = log.getLong("et") - log.getLong("bt");
+                float rate = duration > 1 ? (log.getInt("ep") - log.getInt("bp")) * 60f / duration : 0;
+                entries.add(new BarEntry(rate, j));
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
 
-        LineDataSet set = new LineDataSet(entries, "Duration");
-        set.setColor(Color.rgb(164, 228, 251));
-        set.setFillColor(Color.TRANSPARENT);
-        set.setValueTextColor(Color.WHITE);
-        set.setDrawValues(false);
+        BarDataSet entrySet = new BarDataSet(entries, "");
+        entrySet.setColor(ContextCompat.getColor(getContext(), R.color.battery_log_charge_rate_color));
+        entrySet.setValueTextColor(Color.WHITE);
+        entrySet.setLabel(getString(R.string.chart_charge_rate));
 
-        set.setAxisDependency(YAxis.AxisDependency.RIGHT);
+        entrySet.setAxisDependency(YAxis.AxisDependency.LEFT);
 
-        data.addDataSet(set);
-        data.setValueTextSize(10);
+        data.addDataSet(entrySet);
+        data.setValueTextSize(CHART_VALUE_TEXT_SIZE);
+        data.setValueFormatter(LogValueFormatter.createRateValueFormatter(getContext()));
 
         return data;
     }
 
-    private int[] getColors() {
+    private LineData getDurationLineData() {
 
-        return new int[]{Color.rgb(150, 150, 220), Color.rgb(150, 220, 140)};
-
-
-//        int stacksize = 2;
-//
-//        // have as many colors as stack-values per entry
-//        int[] colors = new int[stacksize];
-//
-//        for (int i = 0; i < stacksize; i++) {
-//            colors[i] = ColorTemplate.VORDIPLOM_COLORS[i];
+        LineData data = new LineData();
+        ArrayList<Entry> entries =  new ArrayList<>();
+//        for (int i = 0; i < 5; i++) {
+//            float val =(float) (Math.random() * 5 + Math.random()/3);
+//            entries.add(new Entry(val, i));
 //        }
-//
-//        return colors;
+        try {
+            for (int i = mLogs.length()-1, j = 0; i >= 0; --i, ++j) {
+                JSONObject log = mLogs.getJSONObject(i);
+                entries.add(new Entry((log.getInt("et")-log.getInt("bt"))/60, j));
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        LineDataSet entrySet = new LineDataSet(entries, getString(R.string.chart_charge_duration));
+        int c = ContextCompat.getColor(getContext(), R.color.battery_log_charge_duration_color);
+        entrySet.setColor(c);
+        entrySet.setCircleColor(c);
+        entrySet.setCircleSize(4);
+        //set.setCircleColorHole(Color.WHITE);
+        //set.setFillColor(Color.TRANSPARENT);
+        entrySet.setValueTextColor(Color.WHITE);
+        entrySet.setLineWidth(2);
+        entrySet.setDrawValues(false);
+
+        entrySet.setAxisDependency(YAxis.AxisDependency.RIGHT);
+
+        data.addDataSet(entrySet);
+        data.setValueTextSize(CHART_VALUE_TEXT_SIZE);
+        data.setValueFormatter(LogValueFormatter.createDurationValueFormatter(getContext()));
+
+        return data;
     }
+
+    public void fetchLogsFromDb() {
+        BatteryLocalDbAdapter dbAdapter = new BatteryLocalDbAdapter(getContext());
+        mLogs = dbAdapter.getLatestChargeLog(7);
+        Log.d("--->fetch db", mLogs.toString());
+        if (mLogs == null) {
+            mLogs = new JSONArray();
+        }
+    }
+
+    public void drawChart() {
+
+        CombinedData powerData = new CombinedData(getXLabels(false));
+        powerData.setData(getPowerBarData());
+        powerData.setData(getDurationLineData());
+        mPowerChart.setData(powerData);
+
+        CombinedData rateData = new CombinedData(getXLabels(false));
+        rateData.setData(getRateBarData());
+        rateData.setData(getDurationLineData());
+        mRateChart.setData(rateData);
+
+        mPowerChart.invalidate();
+        mRateChart.invalidate();
+    }
+
 
     @Override
     public void onResume() {
