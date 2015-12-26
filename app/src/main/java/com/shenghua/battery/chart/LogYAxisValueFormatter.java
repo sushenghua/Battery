@@ -22,7 +22,7 @@ public class LogYAxisValueFormatter implements YAxisValueFormatter {
     }
 
     public static LogYAxisValueFormatter createRateAxisValueFormatter(Context context) {
-        return new LogYAxisValueFormatter("##0.0", "");
+        return new LogYAxisValueFormatter("##0.00", "");
         //return new LogYAxisValueFormatter("###,##0.0", context.getString(R.string.chart_charge_rate_unit));
     }
 

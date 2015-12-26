@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 
+import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
@@ -23,6 +24,8 @@ import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.YAxisValueFormatter;
+import com.github.mikephil.charting.highlight.Highlight;
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.shenghua.battery.chart.BatteryCombinedChart;
 import com.shenghua.battery.chart.LogValueFormatter;
 import com.shenghua.battery.chart.LogYAxisValueFormatter;
@@ -63,10 +66,23 @@ public class LogFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_log, container, false);
 
         mListView = (ListView) rootView.findViewById(R.id.chart_list_view);
-        int height =  600;
 
+        int height =  600;
         mPowerChart = createChart(LogYAxisValueFormatter.createPowerAxisValueFormatter());
         mPowerChart.setMinimumHeight(height);
+        mPowerChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
+            @Override
+            public void onValueSelected(Entry e, int dataSetIndex, Highlight h) {
+
+            }
+
+            @Override
+            public void onNothingSelected() {
+
+            }
+        });
+
+
         mRateChart = createChart(LogYAxisValueFormatter.createRateAxisValueFormatter(getContext()));
         mRateChart.setMinimumHeight(height);
 
@@ -85,10 +101,6 @@ public class LogFragment extends Fragment {
         }
         @Override
         public Object getItem(int position) {
-            if (position == 0)
-                return mPowerChart;
-            else if (position == 1)
-                return mRateChart;
             return null;
         }
         @Override
@@ -245,6 +257,7 @@ public class LogFragment extends Fragment {
                 JSONObject log = mLogs.getJSONObject(i);
                 float duration = log.getLong("et") - log.getLong("bt");
                 float rate = duration > 1 ? (log.getInt("ep") - log.getInt("bp")) * 60f / duration : 0;
+                rate = Math.round(rate * 100f) / 100f;
                 entries.add(new BarEntry(rate, j));
             }
         } catch (JSONException e) {
@@ -292,6 +305,7 @@ public class LogFragment extends Fragment {
         entrySet.setValueTextColor(Color.WHITE);
         entrySet.setLineWidth(2);
         entrySet.setDrawValues(false);
+        entrySet.setHighlightEnabled(false);
 
         entrySet.setAxisDependency(YAxis.AxisDependency.RIGHT);
 
@@ -305,7 +319,7 @@ public class LogFragment extends Fragment {
     public void fetchLogsFromDb() {
         BatteryLocalDbAdapter dbAdapter = new BatteryLocalDbAdapter(getContext());
         mLogs = dbAdapter.getLatestChargeLog(7);
-        Log.d("--->fetch db", mLogs.toString());
+        //Log.d("--->fetch db", mLogs.toString());
         if (mLogs == null) {
             mLogs = new JSONArray();
         }

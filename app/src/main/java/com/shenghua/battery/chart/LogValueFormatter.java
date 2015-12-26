@@ -22,7 +22,7 @@ public class LogValueFormatter implements ValueFormatter {
     }
 
     public static LogValueFormatter createRateValueFormatter(Context context) {
-        return new LogValueFormatter("###,##0.0", context.getString(R.string.chart_charge_rate_unit));
+        return new LogValueFormatter("###,##0.00", context.getString(R.string.chart_charge_rate_unit));
     }
 
     public static LogValueFormatter createDurationValueFormatter(Context context) {
