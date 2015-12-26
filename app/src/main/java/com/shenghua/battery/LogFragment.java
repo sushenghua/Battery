@@ -139,7 +139,7 @@ public class LogFragment extends Fragment {
 
         ArrayList<String> xLabels = new ArrayList<String>();
         for (int i = 0; i < 5; i++) {
-            xLabels.add("col "+i);
+            xLabels.add("2015-12-25, 23:00 "+i);
         }
 
 
@@ -158,11 +158,13 @@ public class LogFragment extends Fragment {
         BarData data = new BarData();
 
         ArrayList<BarEntry> entries =  new ArrayList<>();
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 3; i++) {
             float val1 = (int) (Math.random() * 100 - 0);
             float val2 = (int) (Math.random() * (100-Math.abs(val1)));
             entries.add(new BarEntry(new float[]{val1, val2}, i));
         }
+        entries.add(new BarEntry(new float[]{3, 4}, 3));
+        entries.add(new BarEntry(new float[]{-4, -1}, 4));
 
         BarDataSet set = new BarDataSet(entries, "");
         set.setColors(getColors());
