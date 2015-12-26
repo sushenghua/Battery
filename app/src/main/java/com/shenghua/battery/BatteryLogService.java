@@ -154,10 +154,7 @@ public class BatteryLogService extends Service {
             mCurrentPower = calculateBatteryLevel(intent);
             long timeNow = (long)(System.currentTimeMillis() / 1000.0);
 
-            if (mCurrentPower == 100
-                    && PrefsStorageDelegate.getChargeFullTime() == BATTERY_TIME_UNDEFINED) {
-                PrefsStorageDelegate.setChargeFullTime(timeNow);
-            }
+            checkChargeFull(mCurrentPower, timeNow, false);
 
             int currentChargeType = PrefsStorageDelegate.getChargeType();
             if (newChargeType != currentChargeType) {
@@ -170,10 +167,7 @@ public class BatteryLogService extends Service {
                             Log.d(TAG, "--->launch (as plugin)");
                             PrefsStorageDelegate.setPluginPower(mCurrentPower);
                             PrefsStorageDelegate.setPluginTime(timeNow);
-                            if (mCurrentPower != 100)
-                                PrefsStorageDelegate.setChargeFullTime(BATTERY_TIME_UNDEFINED);
-                            else
-                                PrefsStorageDelegate.setChargeFullTime(timeNow);
+                            checkChargeFull(mCurrentPower, timeNow, true);
                         }
                         else { // no power supply
                             // this service launched when having power supply plugged in
@@ -185,10 +179,7 @@ public class BatteryLogService extends Service {
                         Log.d(TAG, "--->plugin");
                         PrefsStorageDelegate.setPluginPower(mCurrentPower);
                         PrefsStorageDelegate.setPluginTime(timeNow);
-                        if (mCurrentPower != 100)
-                            PrefsStorageDelegate.setChargeFullTime(BATTERY_TIME_UNDEFINED);
-                        else
-                            PrefsStorageDelegate.setChargeFullTime(timeNow);
+                        checkChargeFull(mCurrentPower, timeNow, true);
                         break;
 
                     case BATTERY_USB_CHARGE:
@@ -214,6 +205,16 @@ public class BatteryLogService extends Service {
                 PrefsStorageDelegate.setChargeType(newChargeType);
             }
             broadcastActionBatterystatusChanged();
+        }
+    }
+
+    private void checkChargeFull(int power, long time, boolean overwriteOnExisted) {
+        if (power == 100 ) {
+            boolean nonexisted = PrefsStorageDelegate.getChargeFullTime() == BATTERY_TIME_UNDEFINED;
+            if (overwriteOnExisted || nonexisted)
+                PrefsStorageDelegate.setChargeFullTime(time);
+        } else { // not full anymore
+            PrefsStorageDelegate.setChargeFullTime(BATTERY_TIME_UNDEFINED);
         }
     }
 
@@ -249,6 +250,8 @@ public class BatteryLogService extends Service {
         long chargeFullTime = PrefsStorageDelegate.getChargeFullTime();
         long chargeEndTime = (mPlugoutPower == 100 && chargeFullTime != BATTERY_TIME_UNDEFINED)?
                 chargeFullTime : mPlugoutTime;
+        if (chargeEndTime < mPluginTime) // plugin time or full time is problematic
+            chargeEndTime = mPlugoutTime;
         dbAdapter.insertLog(mPluginPower, mPluginTime,
                             mPlugoutPower, chargeEndTime,
                             mPlugoutTime, chargeEndTime - mPluginTime, false);
