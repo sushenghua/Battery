@@ -225,6 +225,8 @@ public class BatteryBarChartRenderer extends BarChartRenderer {
 
                             trans.pointValuesToPixel(transformed);
 
+                            float lowerBarY = 0;
+
                             for (int k = 0; k < transformed.length; k += 2) {
 
                                 float x = valuePoints[j];
@@ -242,6 +244,26 @@ public class BatteryBarChartRenderer extends BarChartRenderer {
                                 float y = transformed[k + 1]
                                         + (vals[k / 2] >= 0 ? finalPosOffset : finalNegOffset);
 
+                                if (Math.abs(y - lowerBarY) < valueTextHeight * 1.5) {
+                                    if (y >= 0) {
+                                        y -= valueTextHeight * 1.5;
+                                        float deltaToBarTop = y - mBarBuffers[i].buffer[rectIndex + 1];
+                                        if (deltaToBarTop > 0 && deltaToBarTop < valueOffsetPlus) {
+                                            needShift = true;
+                                            y -= deltaToBarTop + valueTextHeight + valueOffsetPlus;
+                                        }
+                                    }
+                                    else {
+                                        y += valueTextHeight * 1.5;
+                                        float deltaToBarBottom = y - mBarBuffers[i].buffer[rectIndex + 3];
+                                        if (deltaToBarBottom < 0 && deltaToBarBottom > -valueOffsetPlus) {
+                                            needShift = true;
+                                            y += deltaToBarBottom + valueTextHeight + valueOffsetPlus;
+                                        }
+                                    }
+                                }
+                                lowerBarY = y;
+
                                 String drawText = dataSet.getValueFormatter().getFormattedValue(vals[k/2], entry, i, mViewPortHandler);
                                 float txtWidth = Utils.calcTextWidth(mValuePaint, drawText);
 
@@ -253,13 +275,21 @@ public class BatteryBarChartRenderer extends BarChartRenderer {
                                     continue;
 
                                 float rectWidth = mBarBuffers[i].buffer[rectIndex+2] -mBarBuffers[i].buffer[rectIndex];
-                                if (needShift && mViewPortHandler.isInBoundsLeft(mBarBuffers[i].buffer[rectIndex] + rectWidth*.1f)
-                                        && mViewPortHandler.isInBoundsRight(mBarBuffers[i].buffer[rectIndex]+ rectWidth*.5f + txtWidth*.75f)) {
+                                float startX = mBarBuffers[i].buffer[rectIndex]+ rectWidth*.5f - txtWidth*1.6f;
+                                float endX = mBarBuffers[i].buffer[rectIndex]+ rectWidth*.5f + txtWidth*.75f;
+                                if (needShift && mViewPortHandler.isInBoundsLeft(startX)
+                                        && mViewPortHandler.isInBoundsRight(endX)) {
 
-                                    float hLineY = vals[k / 2] >= 0 ? mBarBuffers[i].buffer[rectIndex+1] - valueOffsetPlus/2
-                                            : mBarBuffers[i].buffer[rectIndex+3] + finalNegOffset + valueOffsetPlus/2;
+//                                    float hLineY = vals[k / 2] >= 0 ? mBarBuffers[i].buffer[rectIndex+1] - valueOffsetPlus/2
+//                                            : mBarBuffers[i].buffer[rectIndex+3] + finalNegOffset + valueOffsetPlus/2;
+                                    float hLineY =  y + valueTextHeight * 0.3f;
 
-                                    c.drawLine( mBarBuffers[i].buffer[rectIndex]+ rectWidth*.1f,
+                                    mValuePaint.setAntiAlias(true);
+                                    mValuePaint.setStrokeWidth(2);
+
+                                    float startXLeftMost =  mBarBuffers[i].buffer[rectIndex]+ rectWidth*.1f;
+                                    startX = startX < startXLeftMost? startXLeftMost : startX;
+                                    c.drawLine( startX,
                                                 mBarBuffers[i].buffer[rectIndex+3] - rectHeight/2,
                                                 mBarBuffers[i].buffer[rectIndex] + rectWidth*.5f - txtWidth,
                                                 hLineY,
@@ -267,7 +297,7 @@ public class BatteryBarChartRenderer extends BarChartRenderer {
                                     );
                                     c.drawLine( mBarBuffers[i].buffer[rectIndex] + rectWidth*.5f - txtWidth,
                                                 hLineY,
-                                                mBarBuffers[i].buffer[rectIndex]+ rectWidth*.5f + txtWidth*.75f,
+                                                endX,
                                                 hLineY,
                                                 mValuePaint
                                     );
