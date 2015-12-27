@@ -236,8 +236,9 @@ public class BatteryBarChartRenderer extends BarChartRenderer {
 
                             trans.pointValuesToPixel(transformed);
 
-                            dvfp_cache.previousValueHasIndicator = false;
-                            dvfp_cache.preValuePosY = 0;
+                            dvfp_cache.previousIndicatorCount = 0;
+                            dvfp_cache.prePosValuePosY = 0;
+                            dvfp_cache.preNegValuePosY = 0;
 
                             for (int k = 0; k < transformed.length; k += 2) {
 
@@ -255,49 +256,6 @@ public class BatteryBarChartRenderer extends BarChartRenderer {
 
                                 if (dvfp_cache.returnFlag == DrawValueFuncParams.NEED_BREAK)
                                     break;
-                                else if (dvfp_cache.returnFlag == DrawValueFuncParams.NEED_CONTINUE)
-                                    continue;
-
-/*
-                                float previousValueY = 0;
-                                boolean previousDrawIndicator = false;
-                                float x = valuePoints[j];
-                                boolean drawPositive = vals[k/2] >= 0;
-                                float y = transformed[k + 1] + (drawPositive ? posOffset : negOffset);
-
-                                String drawText = dataSet.getValueFormatter().getFormattedValue(vals[k/2], entry, i, mViewPortHandler);
-                                float drawTextWidth = Utils.calcTextWidth(mValuePaint, drawText);
-                                float drawTextHeight = valueTextHeight;
-//Log.d("--->(i,j)","("+i+","+j+")");
-                                int baseRectIndex = j * transformed.length; // j/2 * transformed.length/2 * 4
-                                vCollisionDetect(y, previousValueY,
-                                        previousDrawIndicator, drawPositive,
-                                        drawTextWidth, drawTextHeight, valueOffsetPlus,
-                                        baseRectIndex, k/2, transformed.length/2 - 1,
-                                        mBarBuffers[i].buffer);
-                                if (mCD.hasCollision()) {
-                                    y = mCD.adjustedY;
-                                }
-                                previousValueY = y;
-
-                                if (!mViewPortHandler.isInBoundsRight(x + drawTextWidth * .5f))
-                                    break;
-
-                                if (!mViewPortHandler.isInBoundsY(y)
-                                        || !mViewPortHandler.isInBoundsLeft(x - drawTextWidth * .5f))
-                                    continue;
-
-                                if (mCD.needDrawIndicatorLine
-                                        && mViewPortHandler.isInBoundsTop(mCD.indicatorLinePoints[3])
-                                        && mViewPortHandler.isInBoundsBottom(mCD.indicatorLinePoints[1])
-                                        && mViewPortHandler.isInBoundsLeft(mCD.indicatorLinePoints[0])
-                                        && mViewPortHandler.isInBoundsRight(mCD.indicatorLinePoints[5])) {
-                                    previousDrawIndicator = true;
-                                    mValuePaint.setStrokeWidth(2);
-                                    c.drawLines(mCD.indicatorLinePoints, mValuePaint);
-                                }
-                                c.drawText(drawText, x, y, mValuePaint);
-*/
                             }
                         }
                     }
@@ -313,10 +271,11 @@ public class BatteryBarChartRenderer extends BarChartRenderer {
         float drawTextWidth = Utils.calcTextWidth(mValuePaint, drawText);
         vCollisionDetect(
                 dvfp.posY,
-                dvfp.preValuePosY,
+                dvfp.prePosValuePosY,
+                dvfp.preNegValuePosY,
                 dvfp.forceAdditionalCheck,
-                dvfp.previousValueHasIndicator,
-                dvfp.value >= 0,
+                dvfp.previousIndicatorCount,
+                dvfp.value >= 0f,
                 drawTextWidth,
                 dvfp.drawTextHeight,
                 dvfp.drawTextMarginV,
@@ -327,7 +286,10 @@ public class BatteryBarChartRenderer extends BarChartRenderer {
         if (mCD.hasCollision()) {
             dvfp.posY = mCD.adjustedY;
         }
-        dvfp.preValuePosY = dvfp.posY;
+        if (dvfp.value >= 0f)
+            dvfp.prePosValuePosY = dvfp.posY;
+        else
+            dvfp.preNegValuePosY = dvfp.posY;
 
         dvfp.returnFlag = DrawValueFuncParams.FINE;
 
@@ -347,7 +309,7 @@ public class BatteryBarChartRenderer extends BarChartRenderer {
                 && mViewPortHandler.isInBoundsBottom(mCD.indicatorLinePoints[1])
                 && mViewPortHandler.isInBoundsLeft(mCD.indicatorLinePoints[0])
                 && mViewPortHandler.isInBoundsRight(mCD.indicatorLinePoints[5])) {
-            dvfp.previousValueHasIndicator = true;
+            ++dvfp.previousIndicatorCount;
             mValuePaint.setStrokeWidth(2);
             c.drawLines(mCD.indicatorLinePoints, mValuePaint);
         }
@@ -364,8 +326,10 @@ public class BatteryBarChartRenderer extends BarChartRenderer {
         int firstRectIndexOffset;
         int lastRectIndexOffset;
         boolean forceAdditionalCheck;
-        boolean previousValueHasIndicator;
-        float preValuePosY;
+        int previousIndicatorCount;
+        float prePosValuePosY;
+        float preNegValuePosY;
+        //float[] preNegValuePosYs = new float[5];
 
         int returnFlag;
         static final int FINE = 0;
@@ -374,26 +338,36 @@ public class BatteryBarChartRenderer extends BarChartRenderer {
     }
     private DrawValueFuncParams dvfp_cache = new DrawValueFuncParams();
 
-    private CollisionData vCollisionDetect(float y, float preValueY, boolean forceValueAddintionalCheck,
-                                 boolean previousValueHasIndicator, boolean drawPositive,
-                                 float textDrawWidth, float textDrawHeight, float textDrawMarginV,
-                                 int baseRectIndex, int curRectIndexOffset, int lastRectIndexOffset,
-                                 float[] rectBuffer) {
+    private CollisionData vCollisionDetect(float y,
+                                           float prePosValueY,
+                                           float preNegValueY,
+                                           boolean forceValueAddintionalCheck,
+                                           int previousIndicatorCount,
+                                           boolean drawPositive,
+                                           float textDrawWidth,
+                                           float textDrawHeight,
+                                           float textDrawMarginV,
+                                           int baseRectIndex,
+                                           int curRectIndexOffset,
+                                           int lastRectIndexOffset,
+                                           float[] rectBuffer) {
         // clear collision cache data
         mCD.clear();
 
-        float minDistanceToOthers = textDrawHeight + .3f * textDrawMarginV;
-        mCD.adjustedY = y; // save y for rect collision check
+        float minDistanceToOthers = textDrawHeight;// + .3f * textDrawMarginV;
+        float rectCollisionAdjustment = textDrawHeight + .4f * textDrawMarginV;
+        float textCollisionAdjustment = textDrawHeight * 1.5f + textDrawMarginV;
+        mCD.adjustedY = drawPositive? y : y - .5f*textDrawHeight; // save y for rect collision check
 
         // check if collided with base(previous) value text, base rect no need to check
         if (curRectIndexOffset > 0) {
-            if (drawPositive && preValueY - y < minDistanceToOthers) { // must above and keep min distance
+            if (drawPositive && prePosValueY - y < minDistanceToOthers) { // must above and keep min distance
                 mCD.collisionPos = CollisionData.CollidedPreviousValueText;
-                mCD.adjustedY = preValueY - 1.5f * textDrawHeight - textDrawMarginV;
+                mCD.adjustedY = prePosValueY - textCollisionAdjustment;
             }
-            else if (!drawPositive && y - preValueY < minDistanceToOthers) {
+            else if (!drawPositive && Math.abs(y - preNegValueY) < minDistanceToOthers) {
                 mCD.collisionPos = CollisionData.CollidedPreviousValueText;
-                mCD.adjustedY = preValueY + 1.5f * textDrawHeight + textDrawMarginV;
+                mCD.adjustedY = preNegValueY - textCollisionAdjustment;
             }
         }
 
@@ -422,9 +396,12 @@ public class BatteryBarChartRenderer extends BarChartRenderer {
             if (mCD.hasRectCollision(collision)) {
                 mCD.recentCollisionRectIndex = i;
                 if (drawPositive)
-                    mCD.adjustedY = rectBuffer[baseRectIndex + i * 4 + 1] - textDrawHeight - .4f * textDrawMarginV;
-                else
-                    mCD.adjustedY = rectBuffer[baseRectIndex + i * 4 + 3] + textDrawHeight + .4f * textDrawMarginV;
+                    mCD.adjustedY = rectBuffer[baseRectIndex + i * 4 + 1] - rectCollisionAdjustment;
+                else {
+                    mCD.adjustedY = rectBuffer[baseRectIndex + i * 4 + 3] - rectCollisionAdjustment;
+                    if (Math.abs(mCD.adjustedY - preNegValueY) < minDistanceToOthers)
+                        mCD.adjustedY = preNegValueY - textCollisionAdjustment;
+                }
 
                 // save the collision check result
                 mCD.addCollision(collision);
@@ -447,9 +424,11 @@ public class BatteryBarChartRenderer extends BarChartRenderer {
             mCD.indicatorLinePoints[6] = rectBuffer[baseRectIndex] + rectWidth * .5f + textDrawWidth * .5f + 5;
             mCD.indicatorLinePoints[7] = indicatorLineTopY;
 
-            float indicatorLineLeftX = rectBuffer[curRectIndex] + rectWidth * .5f - textDrawWidth * 1.5f;
-            if (previousValueHasIndicator) indicatorLineLeftX -= curRectIndexOffset * rectWidth * 0.1f;
-            float leftMost = rectBuffer[curRectIndex] + rectWidth * .1f;
+            float space = rectWidth * .5f - textDrawWidth * 0.8f;
+            space = space < 0? 0 : space;
+            float indicatorLineLeftX = rectBuffer[curRectIndex] + space;
+            indicatorLineLeftX -= previousIndicatorCount * space / (lastRectIndexOffset + 1);//rectWidth * 0.1f;
+            float leftMost = rectBuffer[curRectIndex] + 5f;//rectWidth * .1f;
             indicatorLineLeftX = indicatorLineLeftX < leftMost ? leftMost : indicatorLineLeftX;
             float selfRectHeight = rectBuffer[curRectIndex + 3] - rectBuffer[curRectIndex + 1];
             mCD.indicatorLinePoints[0] = indicatorLineLeftX;
