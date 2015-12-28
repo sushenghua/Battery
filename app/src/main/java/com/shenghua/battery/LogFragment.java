@@ -1,6 +1,7 @@
 package com.shenghua.battery;
 
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -27,6 +28,7 @@ import com.github.mikephil.charting.formatter.YAxisValueFormatter;
 import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.shenghua.battery.chart.BatteryCombinedChart;
+import com.shenghua.battery.chart.ChartMarkerView;
 import com.shenghua.battery.chart.LogValueFormatter;
 import com.shenghua.battery.chart.LogYAxisValueFormatter;
 
@@ -48,8 +50,6 @@ public class LogFragment extends Fragment {
     private ListView mListView;
     private BatteryCombinedChart mPowerChart;
     private BatteryCombinedChart mRateChart;
-
-    private ArrayList<String> mXLabels = null;
 
     private JSONArray mLogs;
 
@@ -81,6 +81,8 @@ public class LogFragment extends Fragment {
 
             }
         });
+
+        mPowerChart.setMarkerView(new ChartMarkerView(getContext(), R.layout.log_chart_marker_view));
 
 
         mRateChart = createChart(LogYAxisValueFormatter.createRateAxisValueFormatter(getContext()));
@@ -172,11 +174,9 @@ public class LogFragment extends Fragment {
         return chart;
     }
 
-    private ArrayList<String> getXLabels(boolean forceUpdate) {
+    private ArrayList<String> getXLabels() {
 
-        if (mXLabels == null || forceUpdate) {
-            
-            mXLabels = new ArrayList<>();
+        ArrayList<String> xLabels = new ArrayList<>();
 //        for (int i = 0; i < 5; i++) {
 ////            xLabels.add("2015-12-25, 23:00 "+i);
 //            mXLabels.add(
@@ -187,23 +187,21 @@ public class LogFragment extends Fragment {
 //                                    | DateUtils.FORMAT_SHOW_DATE
 //                                    | DateUtils.FORMAT_SHOW_TIME));
 //        }
-            try {
-                for (int i = mLogs.length() - 1; i >= 0; --i) {
-                    JSONObject log = mLogs.getJSONObject(i);
-                    mXLabels.add(
-                            DateUtils.formatDateTime(getContext(), log.getLong("bt") * 1000,
-                                    DateUtils.FORMAT_NUMERIC_DATE
-                                            | DateUtils.FORMAT_SHOW_YEAR
-                                            | DateUtils.FORMAT_SHOW_DATE
-                                            | DateUtils.FORMAT_SHOW_TIME)
-                    );
-
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
+        try {
+            for (int i = mLogs.length() - 1; i >= 0; --i) {
+                JSONObject log = mLogs.getJSONObject(i);
+                xLabels.add(
+                        DateUtils.formatDateTime(getContext(), log.getLong("bt") * 1000,
+                                DateUtils.FORMAT_NUMERIC_DATE
+                                        | DateUtils.FORMAT_SHOW_YEAR
+                                        | DateUtils.FORMAT_SHOW_DATE
+                                        | DateUtils.FORMAT_SHOW_TIME)
+                );
             }
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
-        return mXLabels;
+        return xLabels;
     }
 
     private BarData getPowerBarData() {
@@ -307,7 +305,7 @@ public class LogFragment extends Fragment {
         entrySet.setValueTextColor(Color.WHITE);
         entrySet.setLineWidth(2);
         entrySet.setDrawValues(false);
-        entrySet.setHighlightEnabled(false);
+        //entrySet.setHighlightEnabled(false);
 
         entrySet.setAxisDependency(YAxis.AxisDependency.RIGHT);
 
@@ -327,26 +325,34 @@ public class LogFragment extends Fragment {
         }
     }
 
-    public void drawChart() {
+    public void loadChart() {
 
-        CombinedData powerData = new CombinedData(getXLabels(false));
+        CombinedData powerData = new CombinedData(getXLabels());
         powerData.setData(getPowerBarData());
         powerData.setData(getDurationLineData());
         mPowerChart.setData(powerData);
 
-        CombinedData rateData = new CombinedData(getXLabels(false));
+        CombinedData rateData = new CombinedData(getXLabels());
         rateData.setData(getRateBarData());
         rateData.setData(getDurationLineData());
         mRateChart.setData(rateData);
-
-        mPowerChart.invalidate();
-        mRateChart.invalidate();
     }
 
+    public void presentCharts(boolean animated) {
+        if (animated && Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) { // api level 11 and higher
+            mPowerChart.animateY(2000);
+            mRateChart.animateY(2000);
+        }
+        else {
+            mPowerChart.invalidate();
+            mRateChart.invalidate();
+        }
+    }
 
     @Override
     public void onResume() {
         super.onResume();
-        drawChart();
+        loadChart();
+        presentCharts(true);
     }
 }
