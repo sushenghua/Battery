@@ -43,7 +43,7 @@ import java.util.ArrayList;
  */
 public class LogFragment extends Fragment {
 
-    private static final int MAX_VISIBLE_VALUE_COUNT = 50;
+    private static final int MAX_VISIBLE_VALUE_COUNT = 10;
     private static final float AXIS_WIDTH = 0.8f;
     private static final float CHART_VALUE_TEXT_SIZE = 10;
 
@@ -157,6 +157,7 @@ public class LogFragment extends Fragment {
         xAxis.setAxisLineWidth(AXIS_WIDTH);
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setDrawGridLines(false);
+        //xAxis.setLabelRotationAngle(-90);
         //xAxis.enableGridDashedLine(10f, 10f, 10f);
 
         Legend l = chart.getLegend();

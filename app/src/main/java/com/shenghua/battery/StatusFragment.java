@@ -181,7 +181,7 @@ public class StatusFragment extends Fragment {
     }
 
     private void speedyChargeSupportCheck() {
-        boolean supported = false;
+        boolean supported = DeviceInfo.supportSpeedyCharge(getResources());
 
         if (supported) {
             speedyChargeValue.setText(getString(R.string.support_value_yes));

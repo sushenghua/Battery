@@ -84,15 +84,33 @@
     <string name="chart_charge_rate_unit">%/min</string>
     <string name="chart_x_axis">Began at time</string>
 
-    <!--'minute(s)' => '分钟',-->
-    <!--'Began at time' => '开始日期',-->
-    <!--'Power level' => '电量',-->
-    <!--'Duration (minute)' => '耗时 (分钟)',-->
-    <!--'Beginning power' => '起始电量',-->
-    <!--'Charge duration' => '充电耗时',-->
-    <!--'Charge rate' => '充电效率',-->
-    <!--'Power charged' => '充电电量',-->
-    <!--'Rate (level%/min)' => '效率 (电量%/分钟)',-->
+    <!-- speedy charge support list -->
+    <string-array name="support_speedy_charge_chip_list">
+        <item>MSM8974</item>
+        <item>MSM8992</item>
+        <item>MSM8994</item>
+        <item>MSM8996</item>
+        <item>MSM8936</item>
+        <item>MSM8939</item>
+    </string-array>
+    <string-array name="support_speedy_charge_brand_list">
+        <item>Asus</item>
+        <item>Moto</item>
+        <item>Motorola</item>
+        <item>Fujitsu</item>
+        <item>Google Nexus</item>
+        <item>HTC</item>
+        <item>LeTV</item>
+        <item>LG</item>
+        <item>Panasonic</item>
+        <item>Samsung</item>
+        <item>Sharp</item>
+        <item>Sony</item>
+        <item>Xiaomi</item>
+        <item>ZTE</item>
+        <item>Nubia</item>
+        <item>Lenovo</item>
+    </string-array>
 
 
 </resources>

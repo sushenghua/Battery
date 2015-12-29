@@ -3,10 +3,12 @@ package com.shenghua.battery;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
+import android.text.TextUtils;
 import android.util.Log;
 
 import org.json.JSONObject;
@@ -31,7 +33,29 @@ public class DeviceInfo {
         return null;
     }
 
-    private static boolean supportSpeedyCharge() {
+    public static boolean supportSpeedyCharge(Resources res) {
+
+        String[] chipList = res.getStringArray(R.array.support_speedy_charge_chip_list);
+        boolean chipSupported = false;
+        String thisDeviceChipModel = getCpuInfo().toLowerCase();
+        for (String chipModel : chipList) {
+            if (thisDeviceChipModel.contains(chipModel.toLowerCase())) {
+                chipSupported = true;
+                break;
+            }
+        }
+
+        if (chipSupported) {
+            String[] brandList = res.getStringArray(R.array.support_speedy_charge_brand_list);
+            for (String brand : brandList) {
+                String brandLowerCase = brand.toLowerCase();
+                if (getModelInfo().contains(brandLowerCase)
+                        || getManufacturerInfo().contains(brandLowerCase)
+                        || getBuildInfo().contains(brandLowerCase))
+                    return true;
+            }
+        }
+
         return false;
     }
 
