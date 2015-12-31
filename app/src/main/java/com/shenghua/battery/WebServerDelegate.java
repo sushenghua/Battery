@@ -83,8 +83,10 @@ public class WebServerDelegate {
     private static final String REGISTER_FORM_PASSWORD = "register-form[password]";
 
     // upload
-    private static final String UPLOAD_URL = URL_ROOT + "r=site%2Fupload-battery-log-m";
-    private static final String UPLOAD_DATA_TAG = "logs";
+    private static final String UPLOAD_DATA_TAG = "data";
+    private static final String LOG_UPLOAD_URL = URL_ROOT + "r=battery%2Fupload-log-m";
+    private static final String DEVICE_INFO_UPLOAD_URL = URL_ROOT + "r=battery%2Fupload-log-m";
+
 
     private JSONObject errorMessage = null;
 
@@ -104,6 +106,10 @@ public class WebServerDelegate {
         return errorMessage;
     }
 
+    public int uploadDeviceInfo(JSONArray jsonArray) {
+        return uploadJsonArrayData(jsonArray, DEVICE_INFO_UPLOAD_URL);
+    }
+
     private static final int SINGLE_UPLOAD_LOG_COUNT = 30;
     public int uploadChargeLog(BatteryLocalDbAdapter db) {
         // pick all local un-uploaded battery charge log, then generate json data, then upload
@@ -111,7 +117,7 @@ public class WebServerDelegate {
         try {
             JSONArray logsToUpload;
             while ((logsToUpload = db.getChargeLog(false, SINGLE_UPLOAD_LOG_COUNT)).length() > 0) {
-                serverResponseCode = uploadChargeLog(logsToUpload);
+                serverResponseCode = uploadJsonArrayData(logsToUpload, LOG_UPLOAD_URL);
                 if (serverResponseCode == SERVER_UPLOAD_SUCCEEDED) {
                     db.markChargeLogAsUploaded(logsToUpload);
                 } else {
@@ -124,13 +130,13 @@ public class WebServerDelegate {
         return serverResponseCode;
     }
 
-    private int uploadChargeLog(JSONArray logs) {
+    private int uploadJsonArrayData(JSONArray jsonArray, String url) {
         int serverResponseCode = SERVER_UNKNOWN_ERROR;
         do {
             try {
-                HttpURLConnection connection = createConnection(UPLOAD_URL, "POST");
+                HttpURLConnection connection = createConnection(url, "POST");
                 appendCookiesToConnection(connection, true, true);
-                postChargeLogDataToConnection(logs, connection);
+                postJsonArrayDataToConnection(jsonArray, connection);
 
                 connection.connect();
 
@@ -159,18 +165,53 @@ public class WebServerDelegate {
         return serverResponseCode;
     }
 
-    private void postChargeLogDataToConnection(JSONArray logs, HttpURLConnection connection)
+//    private int uploadChargeLog(JSONArray logs) {
+//        int serverResponseCode = SERVER_UNKNOWN_ERROR;
+//        do {
+//            try {
+//                HttpURLConnection connection = createConnection(LOG_UPLOAD_URL, "POST");
+//                appendCookiesToConnection(connection, true, true);
+//                postJsonArrayDataToConnection(logs, connection);
+//
+//                connection.connect();
+//
+//                int httpResponseCode = connection.getResponseCode();
+//                Log.d(TAG, "upload http response code: " + httpResponseCode);
+//                if (httpResponseCode == HTTP_RESPONSE_OK) {
+//                    serverResponseCode = parseServerResponseCode(connection);
+//                    Log.d(TAG, "upload server response code: " + serverResponseCode);
+//                    if (serverResponseCode == SERVER_UPLOAD_SUCCEEDED) {
+//                        //saveCookiesFromConnection(connection);
+//                    }
+//                } else if (httpResponseCode == HTTP_RESPONSE_BAD_REQUEST) {
+//                    serverResponseCode = HTTP_RESPONSE_BAD_REQUEST;
+//                    Log.d(TAG, "upload failed. Bad request: " + connection.getErrorStream().toString());
+//                } else if (httpResponseCode == HTTP_RESPONSE_FORBIDDEN_REQUEST) {
+//                    serverResponseCode = HTTP_RESPONSE_FORBIDDEN_REQUEST;
+//                    Log.d(TAG, "upload failed. Forbidden request: " + connection.getErrorStream().toString());
+//                }
+//            } catch (MalformedURLException e) {
+//                e.printStackTrace();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        } while (false);
+//
+//        return serverResponseCode;
+//    }
+
+    private void postJsonArrayDataToConnection(JSONArray jsonArray, HttpURLConnection connection)
             throws IOException {
         DataOutputStream os = new DataOutputStream(connection.getOutputStream());
-        os.writeBytes(generateLogsDataString(logs));
+        os.writeBytes(generateJsonArrayDataString(jsonArray));
         os.flush();
         os.close();
     }
 
-    private String generateLogsDataString(JSONArray logs) {
+    private String generateJsonArrayDataString(JSONArray jsonArray) {
         Uri.Builder builder = new Uri.Builder()
                 .appendQueryParameter(CSRF_FORM_NAME, PrefsStorageDelegate.getStringValue(CSRF_TOKEN_STORE_NAME))
-                .appendQueryParameter(UPLOAD_DATA_TAG, logs.toString());
+                .appendQueryParameter(UPLOAD_DATA_TAG, jsonArray.toString());
         return builder.build().getEncodedQuery();
     }
 

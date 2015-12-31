@@ -1,16 +1,12 @@
 package com.shenghua.battery;
 
-import android.Manifest;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.location.Location;
 import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.Build;
-import android.text.TextUtils;
-import android.util.Log;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -26,11 +22,62 @@ import java.util.List;
  */
 public class DeviceInfo {
 
+    private static final int DEVICE_INFO_DATA_TYPE = 1;
+
+    public static final int DEVICE_INFO_NOTHING = 0;
+    public static final int DEVICE_BASE_INFO = 1;
+    public static final int DEVICE_LOCATION = 2;
+    public static final int DEVICE_FULL_INFO = 3;
+
+    public static final String DEVICE_INFO_FILTER_JSON_KEY = "filter";
+
     private static Location sLocation = null;
     private static LocationListener sLocationListener = null;
 
-    public static JSONObject getDeviceInfo() {
-        return null;
+    private static LocationTracker locationTracker = null;
+
+    public static JSONObject getDeviceInfo(Context context, int filter) {
+
+        if (filter == DEVICE_INFO_NOTHING)
+            return null;
+
+        JSONObject jo = new JSONObject();
+        try {
+            int resultFilter = DEVICE_INFO_NOTHING;
+
+            String macAddress = getMacAddress();
+            jo.put("type", DEVICE_INFO_DATA_TYPE);
+            jo.put("did", convertMacAddressToLong(macAddress));
+
+            if ( (filter & DEVICE_BASE_INFO) == DEVICE_BASE_INFO ) {
+                jo.put("cpu", getCpuInfo());
+                jo.put("manuf", getManufacturerInfo());
+                jo.put("model", getModelInfo());
+                jo.put("build", getBuildInfo());
+                jo.put("mac", macAddress);
+                jo.put("sptsc", supportSpeedyCharge(context.getResources()));
+                jo.put("android", getAndroidVersion());
+
+                resultFilter |= DEVICE_BASE_INFO;
+            }
+
+            if ( (filter & DEVICE_LOCATION) == DEVICE_LOCATION ) {
+                Location location = getLocation(context);
+                if (location != null) {
+                    jo.put("lat", location.getLatitude());
+                    jo.put("lon", location.getLongitude());
+
+                    resultFilter |= DEVICE_LOCATION;
+                }
+            }
+
+            jo.put(DEVICE_INFO_FILTER_JSON_KEY, resultFilter);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return jo;
     }
 
     public static boolean supportSpeedyCharge(Resources res) {
@@ -57,6 +104,12 @@ public class DeviceInfo {
         }
 
         return false;
+    }
+
+    private static long convertMacAddressToLong(String macAddress) {
+        //String[] parts = macAddress.split(":");
+        String hexString = macAddress.replaceAll(":", "");
+        return Long.parseLong(hexString, 16);
     }
 
     private static String getCpuInfo() {
@@ -103,23 +156,15 @@ public class DeviceInfo {
         return release + "(" + sdk + ")";
     }
 
-//    private static String getUUID() {
-//        return
-//    }
-
-    public static String getMacAddress() {
-        return getMacAddress("wlan0");
+    private static Location getLocation(Context context) {
+        if (locationTracker == null) {
+            locationTracker = new LocationTracker(context);
+        }
+        return locationTracker.getLocation();
     }
 
-    public static void test(Context context) {
-        Log.d("--->Device Mac Address", DeviceInfo.getMacAddress());
-        Location l = getLastBestLocation(context);
-        if (l != null) {
-            Log.d("--->Device Location", l.toString());
-        }
-        else {
-            Log.d("--->Device Location", "null");
-        }
+    private static String getMacAddress() {
+        return getMacAddress("wlan0");
     }
 
     private static String getMacAddress(String interfaceName) {
@@ -148,58 +193,58 @@ public class DeviceInfo {
         }*/
     }
 
-    public static void setLocation(Location location) {
-        sLocation = location;
-    }
-
-    private static Location getLastBestLocation(Context context) {
-
-        PackageManager pm = context.getPackageManager();
-        int permission = pm.checkPermission(Manifest.permission.ACCESS_FINE_LOCATION,
-                context.getPackageName());
-        if (permission == PackageManager.PERMISSION_GRANTED) {
-            Log.d("--->Location Service", "-----> permission granted");
-            LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-            Location locationGPS = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            Location locationNet = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-
-            long gpsLocationTime = 0;
-            if (null != locationGPS) gpsLocationTime = locationGPS.getTime();
-
-            long netLocationTime = 0;
-            if (null != locationNet) netLocationTime = locationNet.getTime();
-
-            if ( netLocationTime < gpsLocationTime ) {
-                return locationGPS;
-            }
-            else {
-                return locationNet;
-            }
-        }
-        return null;
-    }
-
-    public static void registerLocationListener(Context context, LocationListener listener) {
-        PackageManager pm = context.getPackageManager();
-        int permission = pm.checkPermission(Manifest.permission.ACCESS_FINE_LOCATION,
-                context.getPackageName());
-        if (permission == PackageManager.PERMISSION_GRANTED) {
-            LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-            sLocationListener = listener;
-            lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, listener);
-        }
-    }
-
-    public static void unregisterLocationListener(Context context) {
-        PackageManager pm = context.getPackageManager();
-        int permission = pm.checkPermission(Manifest.permission.ACCESS_FINE_LOCATION,
-                context.getPackageName());
-        if (permission == PackageManager.PERMISSION_GRANTED) {
-            LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-            if (sLocationListener != null) {
-                lm.removeUpdates(sLocationListener);
-                sLocationListener = null;
-            }
-        }
-    }
+//    public static void setLocation(Location location) {
+//        sLocation = location;
+//    }
+//
+//    private static Location getLastBestLocation(Context context) {
+//
+//        PackageManager pm = context.getPackageManager();
+//        int permission = pm.checkPermission(Manifest.permission.ACCESS_FINE_LOCATION,
+//                context.getPackageName());
+//        if (permission == PackageManager.PERMISSION_GRANTED) {
+//            Log.d("--->Location Service", "-----> permission granted");
+//            LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+//            Location locationGPS = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+//            Location locationNet = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+//
+//            long gpsLocationTime = 0;
+//            if (null != locationGPS) gpsLocationTime = locationGPS.getTime();
+//
+//            long netLocationTime = 0;
+//            if (null != locationNet) netLocationTime = locationNet.getTime();
+//
+//            if ( netLocationTime < gpsLocationTime ) {
+//                return locationGPS;
+//            }
+//            else {
+//                return locationNet;
+//            }
+//        }
+//        return null;
+//    }
+//
+//    public static void registerLocationListener(Context context, LocationListener listener) {
+//        PackageManager pm = context.getPackageManager();
+//        int permission = pm.checkPermission(Manifest.permission.ACCESS_FINE_LOCATION,
+//                context.getPackageName());
+//        if (permission == PackageManager.PERMISSION_GRANTED) {
+//            LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+//            sLocationListener = listener;
+//            lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, listener);
+//        }
+//    }
+//
+//    public static void unregisterLocationListener(Context context) {
+//        PackageManager pm = context.getPackageManager();
+//        int permission = pm.checkPermission(Manifest.permission.ACCESS_FINE_LOCATION,
+//                context.getPackageName());
+//        if (permission == PackageManager.PERMISSION_GRANTED) {
+//            LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+//            if (sLocationListener != null) {
+//                lm.removeUpdates(sLocationListener);
+//                sLocationListener = null;
+//            }
+//        }
+//    }
 }

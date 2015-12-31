@@ -1,17 +1,10 @@
 package com.shenghua.battery;
 
-import android.content.ContentValues;
 import android.content.Intent;
-import android.content.res.Configuration;
-import android.content.res.Resources;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
-import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 
@@ -23,20 +16,9 @@ import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ImageSpan;
-import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-
-import android.widget.TextView;
-
-import org.json.JSONArray;
 
 import java.lang.ref.WeakReference;
-import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -81,8 +63,6 @@ public class MainActivity extends AppCompatActivity {
         Log.d("DB---all--->", dbAdapter.getAll().toString());
         Log.d("DB---uploaded--->", dbAdapter.getChargeLog(true).toString());
         Log.d("DB---unuploaded--->", dbAdapter.getChargeLog(false).toString());
-
-
 
 
 

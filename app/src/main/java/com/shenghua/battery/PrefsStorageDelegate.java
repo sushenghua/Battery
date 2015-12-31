@@ -20,6 +20,11 @@ public class PrefsStorageDelegate {
 
     private static final String LANGUAGE_INDEX = "LanguageIndex";
 
+    private static final String LATITUDE = "Latitude";
+    private static final String LONGITUDE = "Longitude";
+
+    private static final String DEVICE_INFO_NEED_UPLOAD_FILTER = "DeviceInfoUploaded";
+
     public static boolean initialized() {
         return prefs != null;
     }
@@ -115,6 +120,31 @@ public class PrefsStorageDelegate {
     public static void setLanguageIndex(int languageIndex) {
         SharedPreferences.Editor editor = prefs.edit();
         editor.putInt(LANGUAGE_INDEX, languageIndex);
+        editor.commit();
+    }
+
+    public static double getLatitude() {
+        return Double.longBitsToDouble(prefs.getLong(LATITUDE, 0));
+    }
+
+    public static double getLongitude() {
+        return Double.longBitsToDouble(prefs.getLong(LONGITUDE, 0));
+    }
+
+    public static void setLocation(double latitude, double longitude) {
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putLong(LATITUDE, Double.doubleToLongBits(latitude));
+        editor.putLong(LONGITUDE, Double.doubleToLongBits(longitude));
+        editor.commit();
+    }
+
+    public static int getDeviceInfoNeedUploadFilter() {
+        return prefs.getInt(DEVICE_INFO_NEED_UPLOAD_FILTER, DeviceInfo.DEVICE_FULL_INFO);
+    }
+
+    public static void setDeviceInfoNeedUploadFilter(int filter) {
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putInt(DEVICE_INFO_NEED_UPLOAD_FILTER, filter);
         editor.commit();
     }
 }

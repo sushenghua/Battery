@@ -5,15 +5,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.BatteryManager;
-import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Created by shenghua on 11/16/15.
@@ -234,6 +233,7 @@ public class BatteryLogService extends Service {
         @Override
         protected Void doInBackground(Void... params) {
             saveChargeCycleData();
+            uploadDeviceInfo();
             return null;
         }
 
@@ -283,21 +283,72 @@ public class BatteryLogService extends Service {
         }
     }
 
-    private void registerLocationService() {
+    private void uploadDeviceInfo() {
 
-        LocationListener listener = new LocationListener() {
+        int filter = PrefsStorageDelegate.getDeviceInfoNeedUploadFilter();
+        if (filter == DeviceInfo.DEVICE_INFO_NOTHING)
+            return;
 
-            public void onLocationChanged(Location location) {
-                DeviceInfo.setLocation(location);
-                Log.d("--->Location callback", location.toString());
-                DeviceInfo.unregisterLocationListener(BatteryLogService.this);
+        boolean uploadSucceeded = false;
+        if (WebServerDelegate.networkAvailable(this)) {
+
+            JSONObject deviceInfo = DeviceInfo.getDeviceInfo(getApplicationContext(), filter);
+            int actualUploadInfo = DeviceInfo.DEVICE_INFO_NOTHING;
+            try {
+                actualUploadInfo = deviceInfo.getInt(DeviceInfo.DEVICE_INFO_FILTER_JSON_KEY);
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
+            if (actualUploadInfo == DeviceInfo.DEVICE_INFO_NOTHING)
+                return;
 
-            public void onStatusChanged(String provider, int status, Bundle extras) {}
-            public void onProviderEnabled(String provider) {}
-            public void onProviderDisabled(String provider) {}
-        };
+            JSONArray wrap = new JSONArray();
+            wrap.put(deviceInfo);
 
-        DeviceInfo.registerLocationListener(this, listener);
+            int code = mWebServer.uploadDeviceInfo(wrap);
+            if (code == WebServerDelegate.SERVER_UPLOAD_LOGIN_REQUIRED
+                    || code == WebServerDelegate.SERVER_FORBIDDEN_REQUEST) {
+                Log.d(TAG, "login required / forbidden request");
+                code = mWebServer.login();
+                if (code == WebServerDelegate.SERVER_LOGIN_SUCCEEDED
+                        || code == WebServerDelegate.SERVER_LOGIN_ALREADY) {
+                    Log.d(TAG, "login successful with code: "+code);
+                    code = mWebServer.uploadDeviceInfo(wrap);
+                }
+                else {
+                    Log.d(TAG, "login failed");
+                }
+            }
+            uploadSucceeded = code == WebServerDelegate.SERVER_UPLOAD_SUCCEEDED;
+            if (uploadSucceeded) {
+                Log.d(TAG, "upload device info " + (uploadSucceeded ? "succeeded" : "failed"));
+                //int stillNeedUploadInfo = (actualUploadInfo ^ DeviceInfo.DEVICE_FULL_INFO) & filter;
+                int stillNeedUploadInfo = actualUploadInfo ^ filter;
+                PrefsStorageDelegate.setDeviceInfoNeedUploadFilter(stillNeedUploadInfo);
+            }
+            else {
+                Log.d(TAG, "upload device info failed with code: "+code);
+            }
+        } else {
+            Log.w(TAG, "network unavailable!");
+        }
+    }
+
+    private void registerLocationService() {
+        
+//        LocationListener listener = new LocationListener() {
+//
+//            public void onLocationChanged(Location location) {
+//                DeviceInfo.setLocation(location);
+//                Log.d("--->Location callback", location.toString());
+//                DeviceInfo.unregisterLocationListener(BatteryLogService.this);
+//            }
+//
+//            public void onStatusChanged(String provider, int status, Bundle extras) {}
+//            public void onProviderEnabled(String provider) {}
+//            public void onProviderDisabled(String provider) {}
+//        };
+//
+//        DeviceInfo.registerLocationListener(this, listener);
     }
 }
