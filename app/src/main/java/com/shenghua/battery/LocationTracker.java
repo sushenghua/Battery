@@ -81,10 +81,10 @@ public class LocationTracker implements LocationListener {
                 location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
             }
             if (location == null && isGPSEnabled) {
-                locationManager.requestLocationUpdates(
-                        LocationManager.GPS_PROVIDER,
-                        MIN_TIME_BETWEEN_UPDATES,
-                        MIN_DISTANCE_CHANGE_FOR_UPDATE, this);
+                //locationManager.requestLocationUpdates(
+                //        LocationManager.GPS_PROVIDER,
+                //        MIN_TIME_BETWEEN_UPDATES,
+                //        MIN_DISTANCE_CHANGE_FOR_UPDATE, this);
                 location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             }
         }
