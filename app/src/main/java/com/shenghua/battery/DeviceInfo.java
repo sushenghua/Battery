@@ -31,9 +31,6 @@ public class DeviceInfo {
 
     public static final String DEVICE_INFO_FILTER_JSON_KEY = "filter";
 
-    private static Location sLocation = null;
-    private static LocationListener sLocationListener = null;
-
     private static LocationTracker locationTracker = null;
 
     private static String macAddress = null;
