@@ -63,7 +63,7 @@ public class DeviceInfo {
             }
 
             if ( (filter & DEVICE_LOCATION) == DEVICE_LOCATION ) {
-                Location location = getLocation(context);
+                Location location = getLocation();
                 if (location != null) {
                     jo.put("lat", ""+location.getLatitude());
                     jo.put("lon", ""+location.getLongitude());
@@ -79,6 +79,12 @@ public class DeviceInfo {
         }
 
         return jo;
+    }
+
+    public static void initLocationTracker(Context context) {
+        if (locationTracker == null) {
+            locationTracker = new LocationTracker(context);
+        }
     }
 
     public static boolean supportSpeedyCharge(Resources res) {
@@ -168,10 +174,7 @@ public class DeviceInfo {
         return release + "(" + sdk + ")";
     }
 
-    private static Location getLocation(Context context) {
-        if (locationTracker == null) {
-            locationTracker = new LocationTracker(context);
-        }
+    private static Location getLocation() {
         return locationTracker.getLocation();
     }
 

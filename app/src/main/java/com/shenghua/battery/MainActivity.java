@@ -64,6 +64,9 @@ public class MainActivity extends AppCompatActivity {
 //        Log.d("DB---uploaded--->", dbAdapter.getChargeLog(true).toString());
 //        Log.d("DB---unuploaded--->", dbAdapter.getChargeLog(false).toString());
 
+        // ------ location tracker init
+        DeviceInfo.initLocationTracker(this);
+
         // ------ device info test
 //        Log.d("DeviceInfo-->", DeviceInfo.getDeviceInfo(this, 3).toString());
 

@@ -305,7 +305,7 @@ public class BatteryLogService extends Service {
         boolean uploadSucceeded = false;
         if (WebServerDelegate.networkAvailable(this)) {
 
-            JSONObject deviceInfo = DeviceInfo.getDeviceInfo(getApplicationContext(), filter);
+            JSONObject deviceInfo = DeviceInfo.getDeviceInfo(BatteryLogService.this, filter);
             int actualUploadInfo = DeviceInfo.DEVICE_INFO_NOTHING;
             try {
                 actualUploadInfo = deviceInfo.getInt(DeviceInfo.DEVICE_INFO_FILTER_JSON_KEY);
