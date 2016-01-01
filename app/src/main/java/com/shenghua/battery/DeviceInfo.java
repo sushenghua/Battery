@@ -135,13 +135,16 @@ public class DeviceInfo {
     private static void updateGeoInfo(Context context, Location location) {
         if (location != null) {
             Geocoder geoCoder = new Geocoder(context, Locale.getDefault());
-            try {
-                List<Address> addresses = geoCoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
-                if (addresses.size() > 0) {
-                    geoInfo = addresses.get(0).getLocality() + "," + addresses.get(0).getCountryName();
+            if (geoCoder.isPresent()) {
+                try {
+                    List<Address> addresses = geoCoder.getFromLocation( location.getLatitude(),
+                                                                        location.getLongitude(), 1);
+                    if (addresses.size() > 0) {
+                        geoInfo = addresses.get(0).getLocality() + "," + addresses.get(0).getCountryName();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
             }
         }
     }
