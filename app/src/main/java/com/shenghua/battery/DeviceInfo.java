@@ -36,6 +36,10 @@ public class DeviceInfo {
 
     private static LocationTracker locationTracker = null;
 
+    private static String macAddress = null;
+    private static boolean macAddressHashedEver = false;
+    private static int macAddressHash = 0;
+
     public static JSONObject getDeviceInfo(Context context, int filter) {
 
         if (filter == DEVICE_INFO_NOTHING)
@@ -47,7 +51,7 @@ public class DeviceInfo {
 
             String macAddress = getMacAddress();
             jo.put("type", DEVICE_INFO_DATA_TYPE);
-            jo.put("did", convertMacAddressToLong(macAddress));
+            jo.put("did", getMacAddressHash());
 
             if ( (filter & DEVICE_BASE_INFO) == DEVICE_BASE_INFO ) {
                 jo.put("cpu", getCpuInfo());
@@ -106,10 +110,21 @@ public class DeviceInfo {
         return false;
     }
 
-    private static long convertMacAddressToLong(String macAddress) {
+    public static int getMacAddressHash() {
+        if (!macAddressHashedEver) {
+            if (getMacAddress() != null) {
+                macAddressHash = hashMacAddress(getMacAddress());
+                macAddressHashedEver = true;
+            }
+        }
+        return macAddressHash;
+    }
+
+    private static int hashMacAddress(String macAddress) {
         //String[] parts = macAddress.split(":");
         String hexString = macAddress.replaceAll(":", "");
-        return Long.parseLong(hexString, 16);
+        long tmp = Long.parseLong(hexString, 16);
+        return (int)(tmp ^ (tmp >>> 32));
     }
 
     private static String getCpuInfo() {
@@ -164,7 +179,10 @@ public class DeviceInfo {
     }
 
     private static String getMacAddress() {
-        return getMacAddress("wlan0");
+        if (macAddress == null) {
+            macAddress = getMacAddress("wlan0");
+        }
+        return macAddress;
     }
 
     private static String getMacAddress(String interfaceName) {
@@ -184,7 +202,7 @@ public class DeviceInfo {
             }
         } catch (Exception ex) {
         } // for now eat exceptions
-        return "";
+        return null;
         /*try {
             // this is so Linux hack
             return loadFileAsString("/sys/class/net/" +interfaceName + "/address").toUpperCase().trim();

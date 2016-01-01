@@ -60,11 +60,12 @@ public class BatteryLogService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "onStartCommand()");
-        // test log upload
-        //new SaveBatteryChargeCycleAsync().execute();
+        uploadDeviceInfo();
+
 //        if (intent != null && intent.hasExtra(ACTION_BATTERYSTATUS_CHANGED)) {
 //            new SaveBatteryChargeCycleAsync().execute();
 //        }
+
         return START_STICKY;
     }
 
@@ -92,8 +93,6 @@ public class BatteryLogService extends Service {
             Intent intent = registerReceiver(mBatteryReceiver, filter);
             batteryChangeCheck(intent);
         }
-
-        registerLocationService();
     }
 
     public void onDestory() {
@@ -232,8 +231,7 @@ public class BatteryLogService extends Service {
 
         @Override
         protected Void doInBackground(Void... params) {
-            saveChargeCycleData();
-            uploadDeviceInfo();
+            saveChargeCycleDataSync();
             return null;
         }
 
@@ -242,7 +240,7 @@ public class BatteryLogService extends Service {
         //}
     }
 
-    private void saveChargeCycleData() {
+    private void saveChargeCycleDataSync() {
 
         // save to local db anyway
         Log.d(TAG, "--->save charge log to local db");
@@ -283,7 +281,22 @@ public class BatteryLogService extends Service {
         }
     }
 
+    // --- device info
     private void uploadDeviceInfo() {
+        if (PrefsStorageDelegate.getDeviceInfoNeedUploadFilter() != DeviceInfo.DEVICE_INFO_NOTHING) {
+            new UploadDeviceInfoAsync().execute();
+        }
+    }
+
+    private class UploadDeviceInfoAsync extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected Void doInBackground(Void... params) {
+            uploadDeviceInfoSync();
+            return null;
+        }
+    }
+
+    private void uploadDeviceInfoSync() {
 
         int filter = PrefsStorageDelegate.getDeviceInfoNeedUploadFilter();
         if (filter == DeviceInfo.DEVICE_INFO_NOTHING)
@@ -332,23 +345,5 @@ public class BatteryLogService extends Service {
         } else {
             Log.w(TAG, "network unavailable!");
         }
-    }
-
-    private void registerLocationService() {
-        
-//        LocationListener listener = new LocationListener() {
-//
-//            public void onLocationChanged(Location location) {
-//                DeviceInfo.setLocation(location);
-//                Log.d("--->Location callback", location.toString());
-//                DeviceInfo.unregisterLocationListener(BatteryLogService.this);
-//            }
-//
-//            public void onStatusChanged(String provider, int status, Bundle extras) {}
-//            public void onProviderEnabled(String provider) {}
-//            public void onProviderDisabled(String provider) {}
-//        };
-//
-//        DeviceInfo.registerLocationListener(this, listener);
     }
 }

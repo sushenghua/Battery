@@ -84,8 +84,9 @@ public class WebServerDelegate {
 
     // upload
     private static final String UPLOAD_DATA_TAG = "data";
+    private static final String UPLOAD_DEVICE_IDENTITY = "did";
     private static final String LOG_UPLOAD_URL = URL_ROOT + "r=battery%2Fupload-log-m";
-    private static final String DEVICE_INFO_UPLOAD_URL = URL_ROOT + "r=battery%2Fupload-log-m";
+    private static final String DEVICE_INFO_UPLOAD_URL = URL_ROOT + "r=battery%2Fupload-data-m";
 
 
     private JSONObject errorMessage = null;
@@ -107,7 +108,7 @@ public class WebServerDelegate {
     }
 
     public int uploadDeviceInfo(JSONArray jsonArray) {
-        return uploadJsonArrayData(jsonArray, DEVICE_INFO_UPLOAD_URL);
+        return uploadJsonArrayData(jsonArray, false, DEVICE_INFO_UPLOAD_URL);
     }
 
     private static final int SINGLE_UPLOAD_LOG_COUNT = 30;
@@ -117,7 +118,7 @@ public class WebServerDelegate {
         try {
             JSONArray logsToUpload;
             while ((logsToUpload = db.getChargeLog(false, SINGLE_UPLOAD_LOG_COUNT)).length() > 0) {
-                serverResponseCode = uploadJsonArrayData(logsToUpload, LOG_UPLOAD_URL);
+                serverResponseCode = uploadJsonArrayData(logsToUpload, true, LOG_UPLOAD_URL);
                 if (serverResponseCode == SERVER_UPLOAD_SUCCEEDED) {
                     db.markChargeLogAsUploaded(logsToUpload);
                 } else {
@@ -130,13 +131,13 @@ public class WebServerDelegate {
         return serverResponseCode;
     }
 
-    private int uploadJsonArrayData(JSONArray jsonArray, String url) {
+    private int uploadJsonArrayData(JSONArray jsonArray, boolean appendDeviceIdentity, String url) {
         int serverResponseCode = SERVER_UNKNOWN_ERROR;
         do {
             try {
                 HttpURLConnection connection = createConnection(url, "POST");
                 appendCookiesToConnection(connection, true, true);
-                postJsonArrayDataToConnection(jsonArray, connection);
+                postJsonArrayDataToConnection(jsonArray, appendDeviceIdentity, connection);
 
                 connection.connect();
 
@@ -200,18 +201,23 @@ public class WebServerDelegate {
 //        return serverResponseCode;
 //    }
 
-    private void postJsonArrayDataToConnection(JSONArray jsonArray, HttpURLConnection connection)
+    private void postJsonArrayDataToConnection(JSONArray jsonArray,
+                                               boolean appendDeviceIdentity,
+                                               HttpURLConnection connection)
             throws IOException {
         DataOutputStream os = new DataOutputStream(connection.getOutputStream());
-        os.writeBytes(generateJsonArrayDataString(jsonArray));
+        os.writeBytes(generateJsonArrayDataString(jsonArray, appendDeviceIdentity));
         os.flush();
         os.close();
     }
 
-    private String generateJsonArrayDataString(JSONArray jsonArray) {
+    private String generateJsonArrayDataString(JSONArray jsonArray, boolean appendDeviceIdentidy) {
         Uri.Builder builder = new Uri.Builder()
                 .appendQueryParameter(CSRF_FORM_NAME, PrefsStorageDelegate.getStringValue(CSRF_TOKEN_STORE_NAME))
                 .appendQueryParameter(UPLOAD_DATA_TAG, jsonArray.toString());
+        if (appendDeviceIdentidy) {
+            builder.appendQueryParameter(UPLOAD_DEVICE_IDENTITY, ""+DeviceInfo.getMacAddressHash());
+        }
         return builder.build().getEncodedQuery();
     }
 
