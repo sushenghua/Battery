@@ -68,9 +68,9 @@ public class DeviceInfo {
             if ( (filter & DEVICE_LOCATION) == DEVICE_LOCATION ) {
                 Location location = getLocation(context);
                 if (location != null) {
-                    jo.put("lat", location.getLatitude());
-                    jo.put("lon", location.getLongitude());
-
+                    jo.put("lat", ""+location.getLatitude());
+                    jo.put("lon", ""+location.getLongitude());
+                    jo.put("geo", "");
                     resultFilter |= DEVICE_LOCATION;
                 }
             }
