@@ -60,11 +60,12 @@ public class MainActivity extends AppCompatActivity {
 //        long id = dbAdapter.insertLog(20, 12032300, 60, 12032330, 12032335, 35, true);
 //        Log.d("DB insert test", ""+id);
 //        dbAdapter.markChargeLogAsUploaded(dbAdapter.getChargeLog(false));
-        Log.d("DB---all--->", dbAdapter.getAll().toString());
-        Log.d("DB---uploaded--->", dbAdapter.getChargeLog(true).toString());
-        Log.d("DB---unuploaded--->", dbAdapter.getChargeLog(false).toString());
+//        Log.d("DB---all--->", dbAdapter.getAll().toString());
+//        Log.d("DB---uploaded--->", dbAdapter.getChargeLog(true).toString());
+//        Log.d("DB---unuploaded--->", dbAdapter.getChargeLog(false).toString());
 
-
+        // ------ device info test
+//        Log.d("DeviceInfo-->", DeviceInfo.getDeviceInfo(this, 3).toString());
 
         // fragment adapter
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
@@ -75,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
         mViewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
             @Override
             public void onPageSelected(int pos) {
-                Log.d("MainActivity", "on page " + pos + " selected");
+                //Log.d("MainActivity", "on page " + pos + " selected");
             }
         });
 

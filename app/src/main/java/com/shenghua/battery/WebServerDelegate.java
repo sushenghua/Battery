@@ -166,41 +166,6 @@ public class WebServerDelegate {
         return serverResponseCode;
     }
 
-//    private int uploadChargeLog(JSONArray logs) {
-//        int serverResponseCode = SERVER_UNKNOWN_ERROR;
-//        do {
-//            try {
-//                HttpURLConnection connection = createConnection(LOG_UPLOAD_URL, "POST");
-//                appendCookiesToConnection(connection, true, true);
-//                postJsonArrayDataToConnection(logs, connection);
-//
-//                connection.connect();
-//
-//                int httpResponseCode = connection.getResponseCode();
-//                Log.d(TAG, "upload http response code: " + httpResponseCode);
-//                if (httpResponseCode == HTTP_RESPONSE_OK) {
-//                    serverResponseCode = parseServerResponseCode(connection);
-//                    Log.d(TAG, "upload server response code: " + serverResponseCode);
-//                    if (serverResponseCode == SERVER_UPLOAD_SUCCEEDED) {
-//                        //saveCookiesFromConnection(connection);
-//                    }
-//                } else if (httpResponseCode == HTTP_RESPONSE_BAD_REQUEST) {
-//                    serverResponseCode = HTTP_RESPONSE_BAD_REQUEST;
-//                    Log.d(TAG, "upload failed. Bad request: " + connection.getErrorStream().toString());
-//                } else if (httpResponseCode == HTTP_RESPONSE_FORBIDDEN_REQUEST) {
-//                    serverResponseCode = HTTP_RESPONSE_FORBIDDEN_REQUEST;
-//                    Log.d(TAG, "upload failed. Forbidden request: " + connection.getErrorStream().toString());
-//                }
-//            } catch (MalformedURLException e) {
-//                e.printStackTrace();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        } while (false);
-//
-//        return serverResponseCode;
-//    }
-
     private void postJsonArrayDataToConnection(JSONArray jsonArray,
                                                boolean appendDeviceIdentity,
                                                HttpURLConnection connection)
