@@ -2,6 +2,8 @@ package com.shenghua.battery;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.os.Build;
@@ -16,6 +18,7 @@ import java.io.IOException;
 import java.net.NetworkInterface;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by shenghua on 12/21/15.
@@ -32,6 +35,7 @@ public class DeviceInfo {
     public static final String DEVICE_INFO_FILTER_JSON_KEY = "filter";
 
     private static LocationTracker locationTracker = null;
+    private static String geoInfo = "";
 
     private static String macAddress = null;
     private static boolean macAddressHashedEver = false;
@@ -67,7 +71,7 @@ public class DeviceInfo {
                 if (location != null) {
                     jo.put("lat", ""+location.getLatitude());
                     jo.put("lon", ""+location.getLongitude());
-                    jo.put("geo", "");
+                    jo.put("geo", getGeoInfo());
                     resultFilter |= DEVICE_LOCATION;
                 }
             }
@@ -81,10 +85,11 @@ public class DeviceInfo {
         return jo;
     }
 
-    public static void initLocationTracker(Context context) {
+    public static void initInMainThread(Context context) {
         if (locationTracker == null) {
             locationTracker = new LocationTracker(context);
         }
+        updateGeoInfo(context, getLocation());
     }
 
     public static boolean supportSpeedyCharge(Resources res) {
@@ -121,6 +126,24 @@ public class DeviceInfo {
             }
         }
         return macAddressHash;
+    }
+
+    private static String getGeoInfo() {
+        return geoInfo;
+    }
+
+    private static void updateGeoInfo(Context context, Location location) {
+        if (location != null) {
+            Geocoder geoCoder = new Geocoder(context, Locale.getDefault());
+            try {
+                List<Address> addresses = geoCoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+                if (addresses.size() > 0) {
+                    geoInfo = addresses.get(0).getLocality() + "," + addresses.get(0).getCountryName();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private static int hashMacAddress(String macAddress) {

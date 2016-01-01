@@ -16,7 +16,6 @@ import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ImageSpan;
-import android.util.Log;
 
 import java.lang.ref.WeakReference;
 
@@ -65,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
 //        Log.d("DB---unuploaded--->", dbAdapter.getChargeLog(false).toString());
 
         // ------ location tracker init
-        DeviceInfo.initLocationTracker(this);
+        DeviceInfo.initInMainThread(this);
 
         // ------ device info test
 //        Log.d("DeviceInfo-->", DeviceInfo.getDeviceInfo(this, 3).toString());
