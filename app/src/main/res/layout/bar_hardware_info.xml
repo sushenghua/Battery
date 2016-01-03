@@ -38,13 +38,13 @@
             android:layout_marginRight="10dp"
             android:text="23" />
 
-        <ImageView
+        <com.shenghua.battery.IndicatorView
             android:id="@+id/supportIndicator"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:layout_marginEnd="10dp"
-            android:src="@drawable/support_indicator"/>
+            android:src="@drawable/support_indicator" />
 
     </RelativeLayout>
 </RelativeLayout>

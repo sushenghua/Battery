@@ -9,4 +9,16 @@
         <attr name="metaButtonBarButtonStyle" format="reference" />
     </declare-styleable>
 
+
+    <!-- hardware support indicator -->
+    <declare-styleable name="HarewareInfoIndicator">
+        <attr name="indicator_value" format="integer" />
+        <!--<attr name="indicator_unsupport" format="integer" />-->
+        <!--<attr name="indicator_support" format="integer" />-->
+        <!--<attr name="indicator_good" format="integer" />-->
+        <!--<attr name="indicator_abnormal" format="integer" />-->
+        <!--<attr name="indicator_warning" format="integer" />-->
+        <!--<attr name="indicator_inactive" format="integer" />-->
+    </declare-styleable>
+
 </resources>

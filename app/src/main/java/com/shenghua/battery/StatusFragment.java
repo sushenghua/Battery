@@ -8,6 +8,7 @@ import android.content.pm.ResolveInfo;
 import android.os.BatteryManager;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,10 +34,10 @@ public class StatusFragment extends Fragment {
     private TextView healthValue = null;
     private TextView speedyChargeValue = null;
 
-    private ImageView temperatureIndicator = null;
-    private ImageView voltageIndicator = null;
-    private ImageView healthIndicator = null;
-    private ImageView speedyChargeIndicator = null;
+    private IndicatorView temperatureIndicator = null;
+    private IndicatorView voltageIndicator = null;
+    private IndicatorView healthIndicator = null;
+    private IndicatorView speedyChargeIndicator = null;
 
     // °C or °F
     private static final int CELSIUS_TEMPERATURE = 0;
@@ -115,7 +116,7 @@ public class StatusFragment extends Fragment {
         temperatureValue = (TextView)tInfoBar.findViewById(R.id.infoValue);
         temperatureValue.setText("--");
 
-        temperatureIndicator = (ImageView) tInfoBar.findViewById(R.id.supportIndicator);
+        temperatureIndicator = (IndicatorView) tInfoBar.findViewById(R.id.supportIndicator);
 
         tInfoBar.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -136,7 +137,7 @@ public class StatusFragment extends Fragment {
         voltageValue = (TextView) vInfoBar.findViewById(R.id.infoValue);
         voltageValue.setText("--");
 
-        voltageIndicator = (ImageView) vInfoBar.findViewById(R.id.supportIndicator);
+        voltageIndicator = (IndicatorView) vInfoBar.findViewById(R.id.supportIndicator);
 
         // health
         View hInfoBar = rootView.findViewById(R.id.healthInfo);
@@ -150,7 +151,7 @@ public class StatusFragment extends Fragment {
         healthValue = (TextView) hInfoBar.findViewById(R.id.infoValue);
         healthValue.setText("--");
 
-        healthIndicator = (ImageView) hInfoBar.findViewById(R.id.supportIndicator);
+        healthIndicator = (IndicatorView) hInfoBar.findViewById(R.id.supportIndicator);
 
         // speedy charge
         View sInfoBar = rootView.findViewById(R.id.speedyChargeInfo);
@@ -164,7 +165,7 @@ public class StatusFragment extends Fragment {
         speedyChargeValue = (TextView) sInfoBar.findViewById(R.id.infoValue);
         speedyChargeValue.setText("--");
 
-        speedyChargeIndicator = (ImageView) sInfoBar.findViewById(R.id.supportIndicator);
+        speedyChargeIndicator = (IndicatorView) sInfoBar.findViewById(R.id.supportIndicator);
 
         speedyChargeSupportCheck();
     }
@@ -185,36 +186,10 @@ public class StatusFragment extends Fragment {
 
         if (supported) {
             speedyChargeValue.setText(getString(R.string.support_value_yes));
-            speedyChargeIndicator.setActivated(true);
+            speedyChargeIndicator.setIndicatorValue(IndicatorView.INDICATOR_SUPPORT);
         } else {
             speedyChargeValue.setText(getString(R.string.support_value_no));
         }
-    }
-
-    private String getCPUInfo() {
-        String cpuInformation = "";
-        //StringBuffer sb = new StringBuffer();
-        //sb.append("abi: ").append(Build.CPU_ABI).append("\n");
-        if (new File("/proc/cpuinfo").exists()) {
-            try {
-                BufferedReader br = new BufferedReader(new FileReader(new File("/proc/cpuinfo")));
-                String aLine;
-                while ((aLine = br.readLine()) != null) {
-                    if (aLine.startsWith("Hardware")) {
-                        cpuInformation = aLine.substring(aLine.indexOf(":") + 1).trim();
-                        break;
-                    }
-                    //sb.append(aLine + "\n");
-                }
-                if (br != null) {
-                    br.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        //return sb.toString();
-        return cpuInformation;
     }
 
     @Override
@@ -311,7 +286,7 @@ public class StatusFragment extends Fragment {
     private void updateTemperature(int value) {
         if (value != BatteryLogService.BATTERY_INVALID_TEMPERATURE) {
             temperatureValue.setText(temperatureText(value, temperatureType));
-            temperatureIndicator.setActivated(true);
+            temperatureIndicator.setIndicatorValue(IndicatorView.INDICATOR_GOOD);
             currentTemperature = value;
         }
     }
@@ -319,7 +294,7 @@ public class StatusFragment extends Fragment {
     private void updateVoltage(int value) {
         if (value != BatteryLogService.BATTERY_INVALID_VOLTAGE) {
             voltageValue.setText(String.format("%.2f", value / 1000.0f) + " V");
-            voltageIndicator.setActivated(true);
+            voltageIndicator.setIndicatorValue(IndicatorView.INDICATOR_GOOD);
         }
     }
 
@@ -327,23 +302,32 @@ public class StatusFragment extends Fragment {
         switch (type) {
             case BatteryManager.BATTERY_HEALTH_GOOD:
                 healthValue.setText(getString(R.string.health_value_good));
-                healthIndicator.setActivated(true);
+                healthIndicator.setIndicatorValue(IndicatorView.INDICATOR_GOOD);
+                voltageIndicator.setIndicatorValue(IndicatorView.INDICATOR_GOOD);
+                temperatureIndicator.setIndicatorValue(IndicatorView.INDICATOR_GOOD);
                 break;
 
             case BatteryManager.BATTERY_HEALTH_OVERHEAT:
                 healthValue.setText(getString(R.string.health_value_overheat));
+                healthIndicator.setIndicatorValue(IndicatorView.INDICATOR_ABNORMAL);
+                temperatureIndicator.setIndicatorValue(IndicatorView.INDICATOR_WARNING);
                 break;
 
             case BatteryManager.BATTERY_HEALTH_DEAD:
                 healthValue.setText(getString(R.string.health_value_dead));
+                healthIndicator.setIndicatorValue(IndicatorView.INDICATOR_DEAD);
                 break;
 
             case BatteryManager.BATTERY_HEALTH_OVER_VOLTAGE:
                 healthValue.setText(getString(R.string.health_value_over_voltage));
+                healthIndicator.setIndicatorValue(IndicatorView.INDICATOR_ABNORMAL);
+                voltageIndicator.setIndicatorValue(IndicatorView.INDICATOR_WARNING);
                 break;
 
             case BatteryManager.BATTERY_HEALTH_COLD:
                 healthValue.setText(getString(R.string.health_value_cold));
+                healthIndicator.setIndicatorValue(IndicatorView.INDICATOR_INACTIVE);
+                temperatureIndicator.setIndicatorValue(IndicatorView.INDICATOR_INACTIVE);
                 break;
 
             case BatteryManager.BATTERY_HEALTH_UNKNOWN:
