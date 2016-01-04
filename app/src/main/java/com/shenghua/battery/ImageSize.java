@@ -18,6 +18,13 @@ public class ImageSize {
         return new ImageSize(option.outWidth, option.outHeight);
     }
 
+    static ImageSize getBitmapSize(byte[] bytes) {
+        BitmapFactory.Options option = new BitmapFactory.Options();
+        option.inJustDecodeBounds = true;
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.length, option);
+        return new ImageSize(option.outWidth, option.outHeight);
+    }
+
     ImageSize(int w, int h) {
         width = w;
         height = h;

@@ -1,23 +1,15 @@
 package com.shenghua.battery;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Base64;
 import android.util.Log;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 
 /**
  * Created by shenghua on 12/30/15.
@@ -175,15 +167,33 @@ public class EmbeddedImage {
             "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==\n";
 
     public static Bitmap createBatteryBaseImage() {
-        return decodeBase64(batteryBase);
+        return decodeBase64Image(batteryBase);
     }
 
     public static Bitmap createBatteryLiquidTopImage() {
-        return decodeBase64(batteryLiquidTop);
+        return decodeBase64Image(batteryLiquidTop);
     }
 
     public static Bitmap createBatteryLiquidCoverImage() {
-        return decodeBase64(batteryLiquidCover);
+        return decodeBase64Image(batteryLiquidCover);
+    }
+
+    public static byte[] getBatteryBaseImageBytes() {
+        return Base64.decode(batteryBase, Base64.DEFAULT);
+    }
+
+    public static byte[] getBatteryLiquidTopImageBytes() {
+        return Base64.decode(batteryLiquidTop, Base64.DEFAULT);
+    }
+
+    public static byte[] getBatteryLiquidCoverImageBytes() {
+        return Base64.decode(batteryLiquidCover, Base64.DEFAULT);
+    }
+
+    public static Bitmap decodeBase64Image(String input)
+    {
+        byte[] decodedByte = Base64.decode(input, Base64.DEFAULT);
+        return BitmapFactory.decodeByteArray(decodedByte, 0, decodedByte.length);
     }
 
     public static String encodeTobase64(Bitmap image)
@@ -202,12 +212,6 @@ public class EmbeddedImage {
 //        byte[] b1 = baos.toByteArray();
 //        Log.d("===>encode test", "b:"+b.length+", b1:"+b1.length);
 //        Log.d("===> encode test", b.equals(b1) ? "pass" : "failed");
-    }
-
-    public static Bitmap decodeBase64(String input)
-    {
-        byte[] decodedByte = Base64.decode(input, Base64.DEFAULT);
-        return BitmapFactory.decodeByteArray(decodedByte, 0, decodedByte.length);
     }
 
     public static void encodeResourceToFile(Context context,

@@ -95,7 +95,8 @@ public class BatteryView extends FrameLayout {
     }
 
     private void calculatePrams() {
-        ImageSize poleImgSize = ImageSize.getBitmapSize(getResources(), R.drawable.battery_base);
+        //ImageSize poleImgSize = ImageSize.getBitmapSize(getResources(), R.drawable.battery_base);
+        ImageSize poleImgSize = ImageSize.getBitmapSize(EmbeddedImage.getBatteryBaseImageBytes());
         batteryWidth = poleWidth; // pole is the widest block
         poleHeight = poleImgSize.height;
         batteryHeight = POLE_TOP_HEIGHT - POLE_TOP_OVERLAY + 2 * poleHeight

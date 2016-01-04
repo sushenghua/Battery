@@ -90,7 +90,8 @@ public class BatteryLiquidView extends View {
         //Bitmap liquidTopBitmap = BitmapFactory.decodeResource(
         //        getResources(), R.drawable.battery_liquid_top);
         Bitmap liquidTopBitmap = EmbeddedImage.createBatteryLiquidTopImage();
-        ImageSize s = ImageSize.getBitmapSize(getResources(), R.drawable.battery_liquid_top);
+        //ImageSize s = ImageSize.getBitmapSize(getResources(), R.drawable.battery_liquid_top);
+        ImageSize s = ImageSize.getBitmapSize(EmbeddedImage.getBatteryLiquidTopImageBytes());
         liquidTopEdge = new BitmapDrawable(getResources(),
                 Bitmap.createScaledBitmap(liquidTopBitmap, liquidWidth, s.height, true));
 
