@@ -77,7 +77,9 @@ public class BatteryFrontView extends View {
             return;
 
         // bitmap
-        Bitmap bitmapOriginal = BitmapFactory.decodeResource(getResources(), R.drawable.battery_base);
+        //Bitmap bitmapOriginal = BitmapFactory.decodeResource(getResources(), R.drawable.battery_base);
+        Bitmap bitmapOriginal = EmbeddedImage.createBatteryBaseImage();
+
         Bitmap bitmap = flipImage(bitmapOriginal);
 
         // create bitmap drawables
@@ -85,8 +87,9 @@ public class BatteryFrontView extends View {
                 Bitmap.createScaledBitmap(bitmap, poleTopWidth, BatteryView.POLE_TOP_HEIGHT, true));
         batteryPositivePoleBottom = new BitmapDrawable(getResources(),
                 Bitmap.createScaledBitmap(bitmap, poleWidth, poleHeight, true));
-        Bitmap liquidCoverBitmap = BitmapFactory.decodeResource(getResources(),
-                R.drawable.battery_liquid_cover);
+        //Bitmap liquidCoverBitmap = BitmapFactory.decodeResource(getResources(),
+        //        R.drawable.battery_liquid_cover);
+        Bitmap liquidCoverBitmap = EmbeddedImage.createBatteryLiquidCoverImage();
         batteryLiquidCover = new BitmapDrawable(getResources(),
                 Bitmap.createScaledBitmap(
                         liquidCoverBitmap,
