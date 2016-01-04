@@ -18,8 +18,14 @@
     <color name="gray1Color">#9DA3A4</color>
     <color name="darkGray1Color">#7D8384</color>
 
-    <color name="greenColor">#33BB00</color>
-    <color name="darkGreenColor">#138A36</color>
+    <color name="green1Color">#33BB00</color>
+    <color name="darkGreen1Color">#138A36</color>
+
+    <color name="greenColor">#138A36</color>
+    <color name="darkGreenColor">#0D5620</color>
+
+    <color name="yellowColor">#896215</color>
+    <color name="darkYellowColor">#563E0D</color>
 
     <color name="grayBlueColor">#9EB9E0</color>
     <color name="darkGrayBlueColor">#7B8FAD</color>

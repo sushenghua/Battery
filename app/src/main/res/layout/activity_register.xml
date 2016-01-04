@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center_horizontal"
+    android:background="#222"
     android:orientation="vertical"
     tools:context="com.shenghua.battery.AccountActivity">
 
