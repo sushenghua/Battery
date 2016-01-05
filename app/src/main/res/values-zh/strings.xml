@@ -1,6 +1,6 @@
 <resources>
 
-    <string name="app_name">快速充电</string>
+    <string name="app_name">电池精灵</string>
 
     <!-- activities title -->
     <!--<string name="title_activity_entry">入口</string>-->
