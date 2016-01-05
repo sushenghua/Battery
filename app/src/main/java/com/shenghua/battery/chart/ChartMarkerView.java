@@ -1,6 +1,7 @@
 package com.shenghua.battery.chart;
 
 import android.content.Context;
+import android.graphics.drawable.ShapeDrawable;
 import android.widget.TextView;
 
 import com.github.mikephil.charting.components.MarkerView;
@@ -19,6 +20,8 @@ public class ChartMarkerView extends MarkerView {
         super(context, layoutResource);
         // this markerview only displays a textview
         tvContent = (TextView) findViewById(R.id.log_chart_marker_view);
+
+
     }
 
     // callbacks everytime the MarkerView is redrawn, can be used to update the
@@ -37,6 +40,6 @@ public class ChartMarkerView extends MarkerView {
     @Override
     public int getYOffset(float ypos) {
         // this will cause the marker-view to be above the selected value
-        return -getHeight();
+        return 3*getHeight();
     }
 }

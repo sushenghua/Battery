@@ -57,7 +57,8 @@ public class WebServerDelegate {
     public static final int SERVER_CSRF_TOKEN_NULL_OR_EMPTY = 1202;
 
     // web root
-    private static final String URL_ROOT = "http://192.168.0.150/battery/app/frontend/web/index.php?";
+//    private static final String URL_ROOT = "http://192.168.0.150/battery/app/frontend/web/index.php?";
+    private static final String URL_ROOT = "http://120.25.209.190/index.php?";
 
     // csrf and session
     private static final String CSRF_URL = URL_ROOT + "r=user%2Fsecurity%2Fcsrf-token-m";

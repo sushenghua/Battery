@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="#222"
-    android:weightSum="1">
+    android:weightSum="2">
 
     <!--<com.github.mikephil.charting.charts.CombinedChart-->
         <!--android:id="@+id/chart"-->
@@ -14,7 +14,8 @@
     <ListView
         android:id="@+id/chart_list_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:layout_weight="2"/>
 
     <!--<Button-->
         <!--android:layout_width="wrap_content"-->

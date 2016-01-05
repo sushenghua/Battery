@@ -3,6 +3,7 @@ package com.shenghua.battery;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.text.format.DateUtils;
@@ -55,6 +56,7 @@ public class LogFragment extends Fragment {
 
     public static LogFragment newInstance() {
         LogFragment fragment = new LogFragment();
+        //Log.d("--->", "LogFragment newInstance");
         return fragment;
     }
 
@@ -73,7 +75,7 @@ public class LogFragment extends Fragment {
         mPowerChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
             @Override
             public void onValueSelected(Entry e, int dataSetIndex, Highlight h) {
-
+                //Log.d("===>power", mPowerChart.getData().getXVals().toString()+"   index:"+e.getXIndex());
             }
 
             @Override
@@ -82,7 +84,7 @@ public class LogFragment extends Fragment {
             }
         });
 
-        mPowerChart.setMarkerView(new ChartMarkerView(getContext(), R.layout.log_chart_marker_view));
+        //mPowerChart.setMarkerView(new ChartMarkerView(getContext(), R.layout.log_chart_marker_view));
 
 
         mRateChart = createChart(LogYAxisValueFormatter.createRateAxisValueFormatter(getContext()));
@@ -92,6 +94,8 @@ public class LogFragment extends Fragment {
         mListView.setAdapter(new CombinedChartAdapter());
 
         fetchLogsFromDb();
+
+        //Log.d("--->", "onCreateView");
 
         return rootView;
     }
@@ -355,5 +359,15 @@ public class LogFragment extends Fragment {
         super.onResume();
         loadChart();
         presentCharts(true);
+        //Log.d("--->", "onResume");
+    }
+
+    public void refresh() {
+        if (mRateChart != null && mPowerChart != null) {
+            mPowerChart.notifyDataSetChanged();
+            mRateChart.notifyDataSetChanged();
+
+        }
+        //Log.d("--->", "refresh");
     }
 }

@@ -63,6 +63,10 @@ public class MainActivity extends AppCompatActivity {
 //        Log.d("DB---uploaded--->", dbAdapter.getChargeLog(true).toString());
 //        Log.d("DB---unuploaded--->", dbAdapter.getChargeLog(false).toString());
 
+        // ---debug file read
+        //EmbeddedImage.encodeDrawableResouce(this);
+
+
         // ------ location tracker init
         DeviceInfo.initInMainThread(this);
 
@@ -79,6 +83,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onPageSelected(int pos) {
                 //Log.d("MainActivity", "on page " + pos + " selected");
+//                if (pos == 1) {
+//                    LogFragment logFragment = (LogFragment) mSectionsPagerAdapter.getItem(pos);
+//                    logFragment.refresh();
+//
+//                }
             }
         });
 
@@ -112,10 +121,8 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public Fragment getItem(int position) {
-            // getItem is called to instantiate the fragment for the given page.
-            // Return a PlaceholderFragment (defined as a static inner class below).
-            //Log.d("pager pos: ", "" + position);
-            //Fragment a = StatusFragment.newInstance();
+
+            //Log.d("--->pager pos", "" + position);
 
             switch (position) {
                 case 0:
@@ -125,6 +132,17 @@ public class MainActivity extends AppCompatActivity {
             }
             return null;
         }
+
+//        public void finishUpdate(ViewGroup container) {
+//            super.finishUpdate(container);
+//            Log.d("--->pager pos", "finishUpdate");
+//
+//        }
+
+//        public int getItemPosition(Object object) {
+//            Log.d("--->pager", "getItemPosition");
+//            return super.getItemPosition(object);
+//        }
 
         @Override
         public int getCount() {
