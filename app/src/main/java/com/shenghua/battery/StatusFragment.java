@@ -192,12 +192,17 @@ public class StatusFragment extends Fragment {
         }
     }
 
+    private void initStaticClasses() {
+        PrefsStorageDelegate.initialize(getContext().getSharedPreferences(
+                PrefsStorageDelegate.PREFS_NAME, Context.MODE_PRIVATE));
+    }
+
     @Override
     public void onResume() {
         super.onResume();
+        initStaticClasses();
         registerBatteryStatusReceiver();
         //Log.d(TAG, "------------>onResume");
-
     }
     @Override
     public void onPause() {
