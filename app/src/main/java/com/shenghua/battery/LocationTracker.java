@@ -28,7 +28,7 @@ public class LocationTracker implements LocationListener {
 
     Location location = null;
 
-    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATE = 10;
+    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATE = 1;
     private static final long MIN_TIME_BETWEEN_UPDATES = 1000 * 10 * 1;
 
     protected LocationManager locationManager;
