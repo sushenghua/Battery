@@ -78,7 +78,7 @@ public class BatteryLogService extends Service {
     public void onCreate() {
         //Log.d(TAG, "onCreate()");
 
-        PrefsStorageDelegate.initialize(getApplicationContext().getSharedPreferences(
+        PrefsStorageDelegate.forceInitialize(this.getSharedPreferences(
                 PrefsStorageDelegate.PREFS_NAME, Context.MODE_PRIVATE));
         mWebServer = WebServerDelegate.getInstance();
 
@@ -94,6 +94,14 @@ public class BatteryLogService extends Service {
             batteryChangeCheck(intent);
         }
     }
+
+//    @Override
+//    public void onRebind(Intent intent) {
+//        Log.d("--->debug", "log service onRebind");
+//        PrefsStorageDelegate.initialize(getApplicationContext().getSharedPreferences(
+//                PrefsStorageDelegate.PREFS_NAME, Context.MODE_PRIVATE));
+//        mWebServer = WebServerDelegate.getInstance();
+//    }
 
     public void onDestory() {
         //Log.d(TAG, "onDestory()");
