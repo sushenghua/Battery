@@ -97,6 +97,74 @@
                         android:singleLine="true" />
                 </android.support.design.widget.TextInputLayout>
 
+                <android.support.design.widget.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <EditText
+                        android:id="@+id/register_dob"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/prompt_register_dob"
+
+                        android:imeActionLabel="@string/action_register"
+                        android:imeOptions="actionUnspecified"
+                        android:inputType="none"
+                        android:editable="false"
+                        android:maxLines="1"
+                        android:singleLine="true" />
+                </android.support.design.widget.TextInputLayout>
+
+                <LinearLayout
+                    android:id="@+id/register_gender_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/register_gender"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginRight="20dp"
+                        android:layout_marginLeft="5dp"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:textColor="#999"
+                        android:text="@string/prompt_gender"
+                        android:textSize="19sp" />
+
+                    <RadioGroup
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <RadioButton
+                            android:id="@+id/gender_male"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:onClick="onRadioButtonClicked"
+                            android:text="@string/gender_value_male" />
+
+                        <RadioButton
+                            android:id="@+id/gender_female"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:onClick="onRadioButtonClicked"
+                            android:text="@string/gender_value_female" />
+
+                        <RadioButton
+                            android:id="@+id/gender_other"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:onClick="onRadioButtonClicked"
+                            android:text="@string/gender_value_other" />
+                    </RadioGroup>
+                </LinearLayout>
+
                 <Button
                     android:id="@+id/register_button"
                     style="?android:textAppearanceSmall"

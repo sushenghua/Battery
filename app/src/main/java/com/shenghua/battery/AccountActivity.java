@@ -1,26 +1,31 @@
 package com.shenghua.battery;
 
-import android.app.AlertDialog;
+import android.app.DatePickerDialog;
+import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
-import android.util.Log;
 import android.util.Patterns;
-import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.text.DateFormat;
+import java.util.Calendar;
+import java.util.EventListener;
 
 /**
  * Created by shenghua on 12/7/15.
@@ -39,6 +44,17 @@ public class AccountActivity extends AppCompatActivity {
     private EditText mEmailView;
     private EditText mPasswordView;
     private EditText mPasswordConfirmView;
+
+    private int mYear = 1990;
+    private int mMonth = 0;
+    private int mDay = 1;
+    private boolean mHumanFingerFocusPossible = false;
+    private EditText mDateOfBirthView;
+
+    private int mGenderValue = -1;
+    private TextView mGenderLabel;
+    private View mGenderLayout = null;
+
     private Button mRegisterButton;
     private View mProgressView;
     private View mHostFormView;
@@ -47,6 +63,90 @@ public class AccountActivity extends AppCompatActivity {
     private Button mRegistrationCompletedButton;
 
     private NetworkTask mNetworkTask = null;
+
+    public interface DatePickedListener extends EventListener {
+        void onDatePicked(int year, int month, int day);
+    }
+
+    public static class DatePickerFragment extends DialogFragment
+            implements DatePickerDialog.OnDateSetListener {
+
+        private int year = 1990;
+        private int month = 0;
+        private int day = 1;
+        private DatePickedListener datePickedListener = null;
+
+        public void setArgument(Bundle arg) {
+            this.year = arg.getInt("year", 1990);
+            this.month = arg.getInt("month", 0);
+            this.day = arg.getInt("day", 1);
+        }
+
+        public void setDatePickedListener(DatePickedListener listener) {
+            datePickedListener = listener;
+        }
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            // Use the current date as the default date in the picker
+            final Calendar c = Calendar.getInstance();
+            c.set(year, month, day);
+            int year = c.get(Calendar.YEAR);
+            int month = c.get(Calendar.MONTH);
+            int day = c.get(Calendar.DAY_OF_MONTH);
+
+            // Create a new instance of DatePickerDialog and return it
+            return new DatePickerDialog(getActivity(), this, year, month, day);
+        }
+
+        @Override
+        public void onDateSet(DatePicker view, int year, int month, int day) {
+            if (datePickedListener != null)
+                datePickedListener.onDatePicked(year, month, day);
+        }
+    }
+
+    public void showDatePickerDialog() {
+        DatePickerFragment datePickerFragment = new DatePickerFragment();
+        Bundle arg = new Bundle();
+        arg.putInt("year", mYear);
+        arg.putInt("month", mMonth);
+        arg.putInt("day", mDay);
+        datePickerFragment.setArgument(arg);
+
+        datePickerFragment.setDatePickedListener(new DatePickedListener() {
+            @Override
+            public void onDatePicked(int year, int month, int day) {
+                mYear = year; mMonth = month; mDay = day;
+                final Calendar c = Calendar.getInstance();
+                c.set(year, month, day);
+                mDateOfBirthView.setText(DateFormat.getDateInstance().format(c.getTime()));
+            }
+        });
+        datePickerFragment.show(getSupportFragmentManager(), "datePicker");
+    }
+
+    public void onRadioButtonClicked(View view) {
+        // Is the button now checked?
+        boolean checked = ((RadioButton) view).isChecked();
+
+        // Check which radio button was clicked
+        switch(view.getId()) {
+            case R.id.gender_male:
+                if (checked) mGenderValue = 0;
+                break;
+
+            case R.id.gender_female:
+                if (checked) mGenderValue = 1;
+                break;
+
+            case R.id.gender_other:
+                if (checked) mGenderValue = 2;
+                break;
+        }
+
+        if (mGenderValue > 0) mGenderLabel.setError(null);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +184,8 @@ public class AccountActivity extends AppCompatActivity {
         mEmailView = (EditText) findViewById(R.id.login_email);
         mPasswordView = (EditText) findViewById(R.id.login_password);
         mPasswordConfirmView = null;
+        mDateOfBirthView = null;
+        mGenderLabel = null;
 
         mHostFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
@@ -114,6 +216,33 @@ public class AccountActivity extends AppCompatActivity {
         mEmailView = (EditText) findViewById(R.id.register_email);
         mPasswordView = (EditText) findViewById(R.id.register_password);
         mPasswordConfirmView = (EditText) findViewById(R.id.register_password_confirm);
+
+        mDateOfBirthView = (EditText) findViewById(R.id.register_dob);
+        mDateOfBirthView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus && mHumanFingerFocusPossible)
+                    showDatePickerDialog();
+                else
+                    mHumanFingerFocusPossible = false;
+            }
+        });
+        mDateOfBirthView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showDatePickerDialog();
+            }
+        });
+        mDateOfBirthView.setOnTouchListener(new TextView.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                mDateOfBirthView.setError(null);
+                mHumanFingerFocusPossible = true;
+                return false;
+            }
+        });
+        mGenderLabel = (TextView) findViewById(R.id.register_gender);
+        mGenderLayout = findViewById(R.id.register_gender_layout);
 
         mProgressView = findViewById(R.id.register_progress);
         mHostFormView = findViewById(R.id.register_form);
@@ -157,28 +286,47 @@ public class AccountActivity extends AppCompatActivity {
     }
 
     private void attemptLogin() {
-        accountOperation(mEmailView, mPasswordView, null);
+        accountOperation(mEmailView, mPasswordView, null, null, null);
     }
 
     private void attemptRegister() {
-        accountOperation(mEmailView, mPasswordView, mPasswordConfirmView);
+        accountOperation(mEmailView, mPasswordView, mPasswordConfirmView, mDateOfBirthView, mGenderLabel);
     }
 
-    private void accountOperation(EditText emailView, EditText passwordView, EditText passwordConfirmView) {
+    private void accountOperation(EditText emailView,
+                                  EditText passwordView,
+                                  EditText passwordConfirmView,
+                                  EditText dobView,
+                                  TextView genderLabel) {
         if (mNetworkTask != null) {
             return;
         }
 
-        if (checkInput(emailView, passwordView, passwordConfirmView)) {
+        if (checkInput(emailView, passwordView, passwordConfirmView, dobView, genderLabel)) {
             // Show a progress spinner, and kick off a background login task
             showProgress(true);
-            mNetworkTask = new NetworkTask( emailView.getText().toString(),
-                                            passwordView.getText().toString());
+            if (dobView != null) {
+                final Calendar c = Calendar.getInstance();
+                c.set(mYear, mMonth, mDay);
+                mNetworkTask = new NetworkTask( emailView.getText().toString(),
+                                                passwordView.getText().toString(),
+                                                c.getTimeInMillis()/1000,
+                                                mGenderValue );
+            }
+            else {
+                mNetworkTask = new NetworkTask(emailView.getText().toString(),
+                        passwordView.getText().toString(),
+                        0, 0);
+            }
             mNetworkTask.execute((Void) null);
         }
     }
 
-    private boolean checkInput(EditText emailView, EditText passwordView, EditText passwordConfirmView) {
+    private boolean checkInput(EditText emailView,
+                               EditText passwordView,
+                               EditText passwordConfirmView,
+                               EditText dobView,
+                               TextView genderLabel) {
 
         // Reset errors.
         emailView.setError(null);
@@ -224,6 +372,25 @@ public class AccountActivity extends AppCompatActivity {
                 }
             }
 
+            // check date of birth
+            if (dobView != null) {
+                String date = dobView.getText().toString();
+                if (TextUtils.isEmpty(date)) {
+                    dobView.setError(getString(R.string.error_field_required));
+                    checkFailedView = dobView;
+                    break;
+                }
+            }
+
+            // check gender
+            if (genderLabel != null) {
+                if (mGenderValue == -1) { // -1: non-set default value
+                    genderLabel.setError(getString(R.string.error_field_required));
+                    checkFailedView = genderLabel;
+                    break;
+                }
+            }
+
         } while(false);
 
         if (checkFailedView != null) {
@@ -254,6 +421,8 @@ public class AccountActivity extends AppCompatActivity {
         mPasswordView.setVisibility(View.GONE);
         mPasswordConfirmView.setVisibility(View.GONE);
         mRegisterButton.setVisibility(View.GONE);
+        mDateOfBirthView.setVisibility(View.GONE);
+        mGenderLayout.setVisibility(View.GONE);
 
         mRegistrationCompletedText.setVisibility(View.VISIBLE);
         mRegistrationCompletedButton.setVisibility(View.VISIBLE);
@@ -263,10 +432,14 @@ public class AccountActivity extends AppCompatActivity {
 
         private final String mEmail;
         private final String mPassword;
+        private final long mDateOfBirth;
+        private final int mGender;
 
-        NetworkTask(String email, String password) {
+        NetworkTask(String email, String password, long dateOfBirth, int gender) {
             mEmail = email;
             mPassword = password;
+            mDateOfBirth = dateOfBirth;
+            mGender = gender;
         }
 
         @Override
@@ -275,7 +448,7 @@ public class AccountActivity extends AppCompatActivity {
                 return WebServerDelegate.getInstance().login(mEmail, mPassword);
             }
             else if (mActivityType == REGISTER_ACTIVITY) {
-                return WebServerDelegate.getInstance().register(mEmail, mPassword);
+                return WebServerDelegate.getInstance().register(mEmail, mPassword, mDateOfBirth, mGender);
             }
 
             return UNDEFINED_ACTIVITY;

@@ -57,8 +57,8 @@ public class WebServerDelegate {
     public static final int SERVER_CSRF_TOKEN_NULL_OR_EMPTY = 1202;
 
     // web root
-//    private static final String URL_ROOT = "http://192.168.0.150/battery/app/frontend/web/index.php?";
-    private static final String URL_ROOT = "http://120.25.209.190/index.php?";
+    private static final String URL_ROOT = "http://192.168.0.150/battery/app/frontend/web/index.php?";
+//    private static final String URL_ROOT = "http://120.25.209.190/index.php?";
 
     // csrf and session
     private static final String CSRF_URL = URL_ROOT + "r=user%2Fsecurity%2Fcsrf-token-m";
@@ -82,6 +82,8 @@ public class WebServerDelegate {
     private static final String REGISTER_URL = URL_ROOT + "r=user%2Fregistration%2Fregister-m";
     private static final String REGISTER_FORM_EMAIL = "register-form[email]";
     private static final String REGISTER_FORM_PASSWORD = "register-form[password]";
+    private static final String REGISTER_FORM_DOB = "register-form[dob]";
+    private static final String REGISTER_FORM_GENDER = "register-form[gender]";
 
     // upload
     private static final String UPLOAD_DATA_TAG = "data";
@@ -187,7 +189,7 @@ public class WebServerDelegate {
         return builder.build().getEncodedQuery();
     }
 
-    public int register(String email, String password) {
+    public int register(String email, String password, long dateOfBirth, int gender) {
         int serverResponseCode = SERVER_UNKNOWN_ERROR;
         do {
             serverResponseCode = obtainCsrfToken(true);
@@ -197,7 +199,7 @@ public class WebServerDelegate {
                 try {
                     HttpURLConnection connection = createConnection(REGISTER_URL, "POST");
                     appendCookiesToConnection(connection, true, true);
-                    postRegisterDataToConnection(email, password, connection);
+                    postRegisterDataToConnection(email, password, dateOfBirth, gender, connection);
 
                     connection.connect();
 
@@ -232,19 +234,23 @@ public class WebServerDelegate {
         return serverResponseCode;
     }
 
-    private void postRegisterDataToConnection(String email, String password, HttpURLConnection connection)
+    private void postRegisterDataToConnection(String email, String password,
+                                              long dateOfBirth, int gender,
+                                              HttpURLConnection connection)
             throws IOException {
         DataOutputStream os = new DataOutputStream(connection.getOutputStream());
-        os.writeBytes(generateRegisterPostDataString(email, password));
+        os.writeBytes(generateRegisterPostDataString(email, password, dateOfBirth, gender));
         os.flush();
         os.close();
     }
 
-    private String generateRegisterPostDataString(String email, String password) {
+    private String generateRegisterPostDataString(String email, String password, long dateOfBirth, int gender) {
         Uri.Builder builder = new Uri.Builder()
                 .appendQueryParameter(CSRF_FORM_NAME, PrefsStorageDelegate.getStringValue(CSRF_TOKEN_STORE_NAME))
                 .appendQueryParameter(REGISTER_FORM_EMAIL, email)
-                .appendQueryParameter(REGISTER_FORM_PASSWORD, password);
+                .appendQueryParameter(REGISTER_FORM_PASSWORD, password)
+                .appendQueryParameter(REGISTER_FORM_DOB, ""+dateOfBirth)
+                .appendQueryParameter(REGISTER_FORM_GENDER, ""+gender);
         return builder.build().getEncodedQuery();
     }
 

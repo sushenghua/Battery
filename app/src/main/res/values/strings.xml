@@ -45,6 +45,11 @@
     <string name="prompt_register_email">Email for registration</string>
     <string name="prompt_register_password">Password for registration</string>
     <string name="prompt_register_password_confirm">Password Confirmation</string>
+    <string name="prompt_register_dob">Date of Birth</string>
+    <string name="prompt_gender">Gender</string>
+    <string name="gender_value_male">Male</string>
+    <string name="gender_value_female">Female</string>
+    <string name="gender_value_other">Other</string>
     <string name="error_confirm_password">Inconsistent password</string>
     <string name="error_email_already_exists">This email already has been registered</string>
     <string name="msg_registration_completed">Registration completed</string>

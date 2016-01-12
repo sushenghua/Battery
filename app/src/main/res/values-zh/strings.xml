@@ -43,6 +43,11 @@
     <string name="prompt_register_email">注册邮箱</string>
     <string name="prompt_register_password">注册密码</string>
     <string name="prompt_register_password_confirm">密码确认</string>
+    <string name="prompt_register_dob">出生日期</string>
+    <string name="prompt_gender">性别</string>
+    <string name="gender_value_male">男</string>
+    <string name="gender_value_female">女</string>
+    <string name="gender_value_other">其他</string>
     <string name="error_confirm_password">两次输入密码不一致</string>
     <string name="error_username_already_exists">此用户名已被注册</string>
 
