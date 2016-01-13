@@ -60,6 +60,8 @@ public class BatteryLogService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "onStartCommand()");
+
+        DeviceInfo.init(this);
         uploadDeviceInfo();
 
 //        if (intent != null && intent.hasExtra(ACTION_BATTERYSTATUS_CHANGED)) {

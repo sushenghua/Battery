@@ -85,7 +85,7 @@ public class DeviceInfo {
         return jo;
     }
 
-    public static void initInMainThread(Context context) {
+    public static void init(Context context) {
         if (locationTracker == null) {
             locationTracker = new LocationTracker(context);
         }

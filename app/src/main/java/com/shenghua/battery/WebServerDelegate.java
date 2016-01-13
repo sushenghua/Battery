@@ -179,11 +179,11 @@ public class WebServerDelegate {
         os.close();
     }
 
-    private String generateJsonArrayDataString(JSONArray jsonArray, boolean appendDeviceIdentidy) {
+    private String generateJsonArrayDataString(JSONArray jsonArray, boolean appendDeviceIdentity) {
         Uri.Builder builder = new Uri.Builder()
                 .appendQueryParameter(CSRF_FORM_NAME, PrefsStorageDelegate.getStringValue(CSRF_TOKEN_STORE_NAME))
                 .appendQueryParameter(UPLOAD_DATA_TAG, jsonArray.toString());
-        if (appendDeviceIdentidy) {
+        if (appendDeviceIdentity) {
             builder.appendQueryParameter(UPLOAD_DEVICE_IDENTITY, ""+DeviceInfo.getMacAddressHash());
         }
         return builder.build().getEncodedQuery();

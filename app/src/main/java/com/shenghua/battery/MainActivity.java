@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         // ------ location tracker init
-        DeviceInfo.initInMainThread(this);
+        //DeviceInfo.init(this); // this code moved into BatteryLogService.onStartCommand()
 
         // ------ device info test
 //        Log.d("DeviceInfo-->", DeviceInfo.getDeviceInfo(this, 3).toString());
