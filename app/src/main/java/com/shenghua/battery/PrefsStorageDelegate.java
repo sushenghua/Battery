@@ -33,6 +33,10 @@ public class PrefsStorageDelegate {
         if (prefs == null) prefs = p;
     }
 
+    public static void forceInitialize(SharedPreferences p) {
+        prefs = p;
+    }
+
     public static String getEmail() {
         return prefs.getString(EMAIL, "");
     }
