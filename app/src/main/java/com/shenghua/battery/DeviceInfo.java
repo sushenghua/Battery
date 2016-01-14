@@ -6,6 +6,8 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 
 import org.json.JSONException;
@@ -51,6 +53,8 @@ public class DeviceInfo {
             int resultFilter = DEVICE_INFO_NOTHING;
 
             String macAddress = getMacAddress();
+            if (macAddress == null)
+                macAddress = getMacAddress(context);
             jo.put("type", DEVICE_INFO_DATA_TYPE);
             jo.put("did", getMacAddressHash());
 
@@ -202,6 +206,14 @@ public class DeviceInfo {
 
     private static Location getLocation() {
         return locationTracker.getLocation();
+    }
+
+    private static String getMacAddress(Context context) {
+        if (macAddress == null) {
+            WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+            macAddress = wifiManager.getConnectionInfo().getMacAddress();
+        }
+        return macAddress;
     }
 
     private static String getMacAddress() {
