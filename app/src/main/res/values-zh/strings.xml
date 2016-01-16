@@ -64,7 +64,7 @@
     <string name="temperature_label">温度</string>
     <string name="voltage_label">电压</string>
     <string name="health_label">健康</string>
-    <string name="speedy_charge_label">快充</string>
+    <string name="speedy_charge_label">高通快充</string>
 
     <string name="health_value_good">良好</string>
     <string name="health_value_overheat">高温</string>

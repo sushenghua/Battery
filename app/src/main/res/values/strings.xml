@@ -15,7 +15,7 @@
     <string name="register">Register</string>
 
     <!-- entry activity -->
-    <string name="entry_text">Speedy\nCharge</string>
+    <string name="entry_text">GO\nSpeedy</string>
     <string name="logo">logo</string>
 
     <!-- language activity -->
@@ -66,7 +66,7 @@
     <string name="temperature_label">Temperature</string>
     <string name="voltage_label">Voltage</string>
     <string name="health_label">Health</string>
-    <string name="speedy_charge_label">Speedy Charge</string>
+    <string name="speedy_charge_label">Qualcomm Quick Charge</string>
 
     <string name="health_value_good">Good</string>
     <string name="health_value_overheat">Overheat</string>
