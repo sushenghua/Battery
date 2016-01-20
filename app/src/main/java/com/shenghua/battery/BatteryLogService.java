@@ -60,8 +60,8 @@ public class BatteryLogService extends Service {
     private static long mPlugoutTime = BATTERY_TIME_UNDEFINED;
     private static long mChargeFullTime = BATTERY_TIME_UNDEFINED;
 
-    private static final int QUICK_CHARGE_VOLTAGE_JUMP_DISCONNECTION_INTERVAL = 1;
-    private static final int PLUGOUT_POST_OPERATION_DELAY = 10;
+    private static final int QUICK_CHARGE_VOLTAGE_JUMP_DISCONNECTION_INTERVAL = 2;
+    private static final int PLUGOUT_POST_OPERATION_DELAY = 5;
 
     private ScheduledFuture mSaveChargeDataSchedule = null;
     private int mScheduledCount = 0;
@@ -71,7 +71,7 @@ public class BatteryLogService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG, "onStartCommand()");
+        //Log.d(TAG, "onStartCommand()");
 
         DeviceInfo.init(this);
         uploadDeviceInfo();
@@ -175,8 +175,8 @@ public class BatteryLogService extends Service {
             long timeNow = (long)(System.currentTimeMillis() / 1000.0);
 
             checkChargeFull(mCurrentPower, timeNow, false);
-
             int currentChargeType = PrefsStorageDelegate.getChargeType();
+//Log.d("--->", "current charge type: "+currentChargeType+",  new charge type: "+newChargeType);
             if (newChargeType != currentChargeType) {
                 switch (currentChargeType) {
                     case BATTERY_UNDEFINED_CHARGESTATUS: // first time of launch this service
@@ -184,7 +184,7 @@ public class BatteryLogService extends Service {
                                 || newChargeType == BATTERY_AC_CHARGE
                                 || newChargeType == BATTERY_WIRELESS_CHARGE) {
                             // assume the launch as the plugin
-                            Log.d(TAG, "--->launch (as plugin)");
+                            //Log.d(TAG, "--->launch (as plugin)");
 //                            PrefsStorageDelegate.setPluginPower(mCurrentPower);
 //                            PrefsStorageDelegate.setPluginTime(timeNow);
 //                            checkChargeFull(mCurrentPower, timeNow, true);
@@ -197,7 +197,7 @@ public class BatteryLogService extends Service {
                         break;
 
                     case BATTERY_NO_CHARGE: // chargeType can only be either "usb or ac charge"
-                        Log.d(TAG, "--->plugin");
+                        //Log.d(TAG, "--->plugin");
 //                        PrefsStorageDelegate.setPluginPower(mCurrentPower);
 //                        PrefsStorageDelegate.setPluginTime(timeNow);
 //                        checkChargeFull(mCurrentPower, timeNow, true);
@@ -207,7 +207,7 @@ public class BatteryLogService extends Service {
                     case BATTERY_USB_CHARGE:
                     case BATTERY_AC_CHARGE: // chargeType can only be "no charge", plugin => plugout
                     case BATTERY_WIRELESS_CHARGE:
-                        Log.d(TAG, "--->plugout");
+                        //Log.d(TAG, "--->plugout");
 //                        mPlugoutPower = mCurrentPower;
 //                        mPlugoutTime = timeNow;
 //                        mPluginPower = PrefsStorageDelegate.getPluginPower();
@@ -237,23 +237,28 @@ public class BatteryLogService extends Service {
         // in such case it can be meaningful plugin only when this plugin time is at least
         // QUICK_CHARGE_VOLTAGE_JUMP_DISCONNECTION_INTERVAL later than last plugout time
         if (time - mPlugoutTime > QUICK_CHARGE_VOLTAGE_JUMP_DISCONNECTION_INTERVAL) {
+            //Log.d("--->plugin op", "power: "+power+", time: "+time);
             PrefsStorageDelegate.setPluginPower(power);
             PrefsStorageDelegate.setPluginTime(time);
             checkChargeFull(power, time, true);
         }
         else {
-            if (mSaveChargeDataSchedule != null) {
+            if (mSaveChargeDataSchedule != null && mScheduledCount > 0) {
+                //Log.d("--->plugin op", "power: "+power+", time: "+time+" !!!cancel schedule");
                 // if save task already started, pass 'false' (do not interrupt);
                 // otherwise may corrupt the consistent power-time pair, and schedule count
                 mSaveChargeDataSchedule.cancel(false);
+                --mScheduledCount;
             }
         }
     }
 
-    private void plugoutOperation(int power, long time) {
+    private void plugoutOperation(final int power, final long time) {
 
         mPlugoutPower = power;
         mPlugoutTime = time;
+
+//Log.d("--->plugout op", "power: "+power+", time: "+time+", schedule count: "+mScheduledCount);
 
         if (mScheduledCount == 0) { // schedule only when no previous plugout schedule
 
@@ -264,11 +269,14 @@ public class BatteryLogService extends Service {
                 @Override
                 public void run() {
 
+//Log.d("--->plugout post op", "power: "+power+", time: "+time);
+
                     mPluginPower = PrefsStorageDelegate.getPluginPower();
                     mPluginTime = PrefsStorageDelegate.getPluginTime();
 
                     if (mPlugoutPower > mPluginPower) // record this charge cycle
                         new SaveBatteryChargeCycleAsync().execute();
+//Log.d("--->plugout %post% op", "save charge");
 
                     // clear charge flag
                     PrefsStorageDelegate.setPluginTime(BATTERY_TIME_UNDEFINED);
@@ -279,6 +287,8 @@ public class BatteryLogService extends Service {
                     --mScheduledCount;
                 }
             }, PLUGOUT_POST_OPERATION_DELAY, TimeUnit.SECONDS);
+
+//Log.d("--->plugout op", "!!! schedule");
         }
     }
 
@@ -319,7 +329,7 @@ public class BatteryLogService extends Service {
     private void saveChargeCycleDataSync() {
 
         // save to local db anyway
-        Log.d(TAG, "--->save charge log to local db");
+        //Log.d(TAG, "--->save charge log to local db");
         BatteryLocalDbAdapter dbAdapter = new BatteryLocalDbAdapter(this);
         long chargeFullTime = PrefsStorageDelegate.getChargeFullTime();
         long chargeEndTime = (mPlugoutPower == 100 && chargeFullTime != BATTERY_TIME_UNDEFINED)?
@@ -336,24 +346,24 @@ public class BatteryLogService extends Service {
             int code = mWebServer.uploadChargeLog(dbAdapter);
             if (code == WebServerDelegate.SERVER_UPLOAD_LOGIN_REQUIRED
                     || code == WebServerDelegate.SERVER_FORBIDDEN_REQUEST) {
-                Log.d(TAG, "login required / forbidden request");
+                //Log.d(TAG, "login required / forbidden request");
                 code = mWebServer.login();
                 if (code == WebServerDelegate.SERVER_LOGIN_SUCCEEDED
                         || code == WebServerDelegate.SERVER_LOGIN_ALREADY) {
-                    Log.d(TAG, "login successful with code: "+code);
+                    //Log.d(TAG, "login successful with code: "+code);
                     code = mWebServer.uploadChargeLog(dbAdapter);
                     uploadSucceeded = code == WebServerDelegate.SERVER_UPLOAD_SUCCEEDED;
-                    Log.d(TAG, "upload " + (uploadSucceeded ? "succeeded" : "failed"));
+                    //Log.d(TAG, "upload " + (uploadSucceeded ? "succeeded" : "failed"));
                 }
                 else {
-                    Log.d(TAG, "login failed");
+                    //Log.d(TAG, "login failed");
                 }
             }
             else {
-                Log.d(TAG, "upload log error with code: "+code);
+                //Log.d(TAG, "upload log error with code: "+code);
             }
         } else {
-            Log.w(TAG, "network unavailable!");
+            //Log.w(TAG, "network unavailable!");
         }
     }
 
@@ -397,29 +407,29 @@ public class BatteryLogService extends Service {
             int code = mWebServer.uploadDeviceInfo(wrap);
             if (code == WebServerDelegate.SERVER_UPLOAD_LOGIN_REQUIRED
                     || code == WebServerDelegate.SERVER_FORBIDDEN_REQUEST) {
-                Log.d(TAG, "login required / forbidden request");
+                //Log.d(TAG, "login required / forbidden request");
                 code = mWebServer.login();
                 if (code == WebServerDelegate.SERVER_LOGIN_SUCCEEDED
                         || code == WebServerDelegate.SERVER_LOGIN_ALREADY) {
-                    Log.d(TAG, "login successful with code: "+code);
+                    //Log.d(TAG, "login successful with code: "+code);
                     code = mWebServer.uploadDeviceInfo(wrap);
                 }
                 else {
-                    Log.d(TAG, "login failed");
+                    //Log.d(TAG, "login failed");
                 }
             }
             uploadSucceeded = code == WebServerDelegate.SERVER_UPLOAD_SUCCEEDED;
             if (uploadSucceeded) {
-                Log.d(TAG, "upload device info " + (uploadSucceeded ? "succeeded" : "failed"));
+                //Log.d(TAG, "upload device info " + (uploadSucceeded ? "succeeded" : "failed"));
                 //int stillNeedUploadInfo = (actualUploadInfo ^ DeviceInfo.DEVICE_FULL_INFO) & filter;
                 int stillNeedUploadInfo = actualUploadInfo ^ filter;
                 PrefsStorageDelegate.setDeviceInfoNeedUploadFilter(stillNeedUploadInfo);
             }
             else {
-                Log.d(TAG, "upload device info failed with code: "+code);
+                //Log.d(TAG, "upload device info failed with code: "+code);
             }
         } else {
-            Log.w(TAG, "network unavailable!");
+            //Log.w(TAG, "network unavailable!");
         }
     }
 }

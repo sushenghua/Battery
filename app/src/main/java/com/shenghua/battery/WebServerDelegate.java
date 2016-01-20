@@ -145,19 +145,19 @@ public class WebServerDelegate {
                 connection.connect();
 
                 int httpResponseCode = connection.getResponseCode();
-                Log.d(TAG, "upload http response code: " + httpResponseCode);
+                //Log.d(TAG, "upload http response code: " + httpResponseCode);
                 if (httpResponseCode == HTTP_RESPONSE_OK) {
                     serverResponseCode = parseServerResponseCode(connection);
-                    Log.d(TAG, "upload server response code: " + serverResponseCode);
+                    //Log.d(TAG, "upload server response code: " + serverResponseCode);
                     if (serverResponseCode == SERVER_UPLOAD_SUCCEEDED) {
                         //saveCookiesFromConnection(connection);
                     }
                 } else if (httpResponseCode == HTTP_RESPONSE_BAD_REQUEST) {
                     serverResponseCode = HTTP_RESPONSE_BAD_REQUEST;
-                    Log.d(TAG, "upload failed. Bad request: " + connection.getErrorStream().toString());
+                    //Log.w(TAG, "upload failed. Bad request: " + connection.getErrorStream().toString());
                 } else if (httpResponseCode == HTTP_RESPONSE_FORBIDDEN_REQUEST) {
                     serverResponseCode = HTTP_RESPONSE_FORBIDDEN_REQUEST;
-                    Log.d(TAG, "upload failed. Forbidden request: " + connection.getErrorStream().toString());
+                    //Log.d(TAG, "upload failed. Forbidden request: " + connection.getErrorStream().toString());
                 }
             } catch (MalformedURLException e) {
                 e.printStackTrace();
@@ -204,23 +204,23 @@ public class WebServerDelegate {
                     connection.connect();
 
                     int httpResponseCode = connection.getResponseCode();
-                    Log.d(TAG, "register http response code: " + httpResponseCode);
+                    //Log.d(TAG, "register http response code: " + httpResponseCode);
                     if (httpResponseCode == HTTP_RESPONSE_OK) {
                         serverResponseCode = parseServerResponseCode(connection);
-                        Log.d(TAG, "register server response code: " + serverResponseCode);
+                        //Log.d(TAG, "register server response code: " + serverResponseCode);
                         if (serverResponseCode == SERVER_REGISTER_SUCCEEDED) {
                             saveCookiesFromConnection(connection);
                             saveEmailPassword(email, password);
                             saveAsLoggedIn(true);
                         } else {
-                            Log.d(TAG, "incorrect email or password");
+                            //Log.d(TAG, "incorrect email or password");
                         }
                     } else if (httpResponseCode == HTTP_RESPONSE_BAD_REQUEST) {
                         serverResponseCode = HTTP_RESPONSE_BAD_REQUEST;
-                        Log.d(TAG, "register failed. Bad request: " + connection.getErrorStream().toString());
+                        //Log.w(TAG, "register failed. Bad request: " + connection.getErrorStream().toString());
                     } else if (httpResponseCode == HTTP_RESPONSE_FORBIDDEN_REQUEST) {
                         serverResponseCode = HTTP_RESPONSE_FORBIDDEN_REQUEST;
-                        Log.d(TAG, "register failed. Forbidden request: " + connection.getErrorStream().toString());
+                        //Log.d(TAG, "register failed. Forbidden request: " + connection.getErrorStream().toString());
                     }
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
@@ -277,21 +277,21 @@ public class WebServerDelegate {
                     connection.connect();
 
                     int httpResponseCode = connection.getResponseCode();
-                    Log.d(TAG, "login http response code: " + httpResponseCode);
+                    //Log.d(TAG, "login http response code: " + httpResponseCode);
                     if (httpResponseCode == HTTP_RESPONSE_OK) {
                         serverResponseCode = parseServerResponseCode(connection);
-                        Log.d(TAG, "login server response code: " + serverResponseCode);
+                        //Log.d(TAG, "login server response code: " + serverResponseCode);
                         if (serverResponseCode == SERVER_LOGIN_SUCCEEDED
                                 || serverResponseCode == SERVER_LOGIN_ALREADY) {
                             saveCookiesFromConnection(connection);
                             saveEmailPassword(email, password);
                             saveAsLoggedIn(true);
                         } else if (serverResponseCode == SERVER_LOGIN_INCORRECT_USER_OR_PASSWORD) {
-                            Log.d(TAG, "incorrect email or password");
+                            //Log.d(TAG, "incorrect email or password");
                         }
                     } else if (httpResponseCode == HTTP_RESPONSE_BAD_REQUEST) {
                         serverResponseCode = HTTP_RESPONSE_BAD_REQUEST;
-                        Log.d(TAG, "login failed. Bad request: " + connection.getErrorStream().toString());
+                        //Log.w(TAG, "login failed. Bad request: " + connection.getErrorStream().toString());
                     }
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
@@ -335,7 +335,7 @@ public class WebServerDelegate {
             connection.connect();
 
             int httpResponseCode = connection.getResponseCode();
-            Log.d(TAG, "csrf http response code: " + httpResponseCode);
+            //Log.d(TAG, "csrf http response code: " + httpResponseCode);
             if (httpResponseCode == HTTP_RESPONSE_OK) {
                 String csrf = parseServerResponseCsrf(connection);
                 if (csrf != null && csrf.length() > 0) {
@@ -345,11 +345,11 @@ public class WebServerDelegate {
                     code = SERVER_GET_CSRF_TOKEN_SUCCEEDED;
                 } else {
                     code = SERVER_CSRF_TOKEN_NULL_OR_EMPTY;
-                    Log.d(TAG, "get csrf failed, null or empty");
+                    //Log.d(TAG, "get csrf failed, null or empty");
                 }
             } else if (httpResponseCode == HTTP_RESPONSE_BAD_REQUEST) {
                 code = HTTP_RESPONSE_BAD_REQUEST;
-                Log.d(TAG, "get csrf failed. Bad request: " + connection.getErrorStream().toString());
+                //Log.d(TAG, "get csrf failed. Bad request: " + connection.getErrorStream().toString());
             }
         } catch (MalformedURLException e) {
             e.printStackTrace();
@@ -363,7 +363,7 @@ public class WebServerDelegate {
         byte[] rawToken;
         try {
             rawToken = Base64.decode(csrf.replace('.', '+').getBytes("UTF-8"), Base64.DEFAULT);
-            Log.d("rawToken---->", String.valueOf(rawToken));
+            //Log.d("rawToken---->", String.valueOf(rawToken));
 
             String rawTokenStr = String.valueOf(rawToken);
             String mask = rawTokenStr.substring(0, 8);
@@ -387,7 +387,7 @@ public class WebServerDelegate {
             }
 
             String aaa = String.valueOf(res);
-            Log.d("token decode----->", aaa);
+            //Log.d("token decode----->", aaa);
 
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
@@ -417,7 +417,7 @@ public class WebServerDelegate {
     }
 
     public void saveCsrfToken(String token) {
-        Log.d(TAG, "save csrf token: " + token);
+        //Log.d(TAG, "save csrf token: " + token);
         PrefsStorageDelegate.setStringValue(CSRF_TOKEN_STORE_NAME, token);
     }
 
@@ -439,11 +439,11 @@ public class WebServerDelegate {
                 String cookie = HttpCookie.parse(rawCookie).get(0).toString();
                 if (cookie.startsWith(CSRF_COOKIE_PARSE_NAME)) {
                     PrefsStorageDelegate.setStringValue(CSRF_COOKIE_STORE_NAME, cookie);
-                    Log.d(TAG, "save csrf cookie--->"+cookie);
+                    //Log.d(TAG, "save csrf cookie--->"+cookie);
                 }
                 else if (cookie.startsWith(SESSION_COOKIE_PARSE_NAME)) {
                     PrefsStorageDelegate.setStringValue(SESSION_COOKIE_STORE_NAME, cookie);
-                    Log.d(TAG, "save session cookie--->" + cookie);
+                    //Log.d(TAG, "save session cookie--->" + cookie);
                 }
             }
         }
@@ -465,7 +465,7 @@ public class WebServerDelegate {
 
         if (mergedCookie.length() > 0) {
             connection.setRequestProperty("Cookie", mergedCookie);
-            Log.d(TAG, "--->connection append cookies: "+mergedCookie);
+            //Log.d(TAG, "--->connection append cookies: "+mergedCookie);
         }
     }
 
