@@ -62,6 +62,7 @@ public class BatteryLogService extends Service {
 
     private static final int QUICK_CHARGE_VOLTAGE_JUMP_DISCONNECTION_INTERVAL = 2;
     private static final int PLUGOUT_POST_OPERATION_DELAY = 5;
+    //private static final int PLUGOUT_POST_OPERATION_SCHEDULE_MAX_COUNT = 5;
 
     private ScheduledFuture mSaveChargeDataSchedule = null;
     private int mScheduledCount = 0;
@@ -243,6 +244,7 @@ public class BatteryLogService extends Service {
 //Log.d("--->plugout op", "power: "+power+", time: "+time+", schedule count: "+mScheduledCount);
 
         if (mScheduledCount == 0) { // schedule only when no previous plugout schedule
+        //if (mScheduledCount < PLUGOUT_POST_OPERATION_SCHEDULE_MAX_COUNT) {
 
             ++mScheduledCount;
 
@@ -251,10 +253,7 @@ public class BatteryLogService extends Service {
             mPluginTime = PrefsStorageDelegate.getPluginTime();
             mChargeFullTime = PrefsStorageDelegate.getChargeFullTime();
 
-            // clear charge flag
-//            PrefsStorageDelegate.setPluginPower(BATTERY_POWER_UNKNOWN);
-//            PrefsStorageDelegate.setPluginTime(BATTERY_TIME_UNDEFINED);
-//            PrefsStorageDelegate.setChargeFullTime(BATTERY_TIME_UNDEFINED);
+//Log.d("--->schedule", "mPluginPower: "+mPluginPower+", mPluginTime: "+mPluginTime);
 
             ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
             mSaveChargeDataSchedule = scheduledExecutorService.schedule(new Runnable() {
@@ -266,8 +265,7 @@ public class BatteryLogService extends Service {
 //Log.d("--->plugout %post% op", "save charge");
 
                     // decrease schedule
-                    --mScheduledCount;
-
+                    if (mScheduledCount > 0) --mScheduledCount;
                 }
             }, PLUGOUT_POST_OPERATION_DELAY, TimeUnit.SECONDS);
 //Log.d("--->plugout op", "!!! schedule");
