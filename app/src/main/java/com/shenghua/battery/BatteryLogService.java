@@ -185,9 +185,6 @@ public class BatteryLogService extends Service {
                                 || newChargeType == BATTERY_WIRELESS_CHARGE) {
                             // assume the launch as the plugin
                             //Log.d(TAG, "--->launch (as plugin)");
-//                            PrefsStorageDelegate.setPluginPower(mCurrentPower);
-//                            PrefsStorageDelegate.setPluginTime(timeNow);
-//                            checkChargeFull(mCurrentPower, timeNow, true);
                             pluginOperation(mCurrentPower, timeNow);
                         }
                         else { // no power supply
@@ -198,9 +195,6 @@ public class BatteryLogService extends Service {
 
                     case BATTERY_NO_CHARGE: // chargeType can only be either "usb or ac charge"
                         //Log.d(TAG, "--->plugin");
-//                        PrefsStorageDelegate.setPluginPower(mCurrentPower);
-//                        PrefsStorageDelegate.setPluginTime(timeNow);
-//                        checkChargeFull(mCurrentPower, timeNow, true);
                         pluginOperation(mCurrentPower, timeNow);
                         break;
 
@@ -208,18 +202,6 @@ public class BatteryLogService extends Service {
                     case BATTERY_AC_CHARGE: // chargeType can only be "no charge", plugin => plugout
                     case BATTERY_WIRELESS_CHARGE:
                         //Log.d(TAG, "--->plugout");
-//                        mPlugoutPower = mCurrentPower;
-//                        mPlugoutTime = timeNow;
-//                        mPluginPower = PrefsStorageDelegate.getPluginPower();
-//                        mPluginTime = PrefsStorageDelegate.getPluginTime();
-//
-//                        if (mPlugoutPower > mPluginPower) // record this charge cycle
-//                            new SaveBatteryChargeCycleAsync().execute();
-//
-//                        // clear charge flag
-//                        PrefsStorageDelegate.setPluginTime(BATTERY_TIME_UNDEFINED);
-//                        PrefsStorageDelegate.setPluginPower(BATTERY_POWER_UNKNOWN);
-//                        PrefsStorageDelegate.setChargeFullTime(BATTERY_TIME_UNDEFINED);
                         plugoutOperation(mCurrentPower, timeNow);
 
                         break;
@@ -264,30 +246,30 @@ public class BatteryLogService extends Service {
 
             ++mScheduledCount;
 
+            // cache variables temporarily for scheduled save use
+            mPluginPower = PrefsStorageDelegate.getPluginPower();
+            mPluginTime = PrefsStorageDelegate.getPluginTime();
+            mChargeFullTime = PrefsStorageDelegate.getChargeFullTime();
+
+            // clear charge flag
+//            PrefsStorageDelegate.setPluginPower(BATTERY_POWER_UNKNOWN);
+//            PrefsStorageDelegate.setPluginTime(BATTERY_TIME_UNDEFINED);
+//            PrefsStorageDelegate.setChargeFullTime(BATTERY_TIME_UNDEFINED);
+
             ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
             mSaveChargeDataSchedule = scheduledExecutorService.schedule(new Runnable() {
                 @Override
                 public void run() {
-
 //Log.d("--->plugout post op", "power: "+power+", time: "+time);
-
-                    mPluginPower = PrefsStorageDelegate.getPluginPower();
-                    mPluginTime = PrefsStorageDelegate.getPluginTime();
-
                     if (mPlugoutPower > mPluginPower) // record this charge cycle
                         new SaveBatteryChargeCycleAsync().execute();
 //Log.d("--->plugout %post% op", "save charge");
 
-                    // clear charge flag
-                    PrefsStorageDelegate.setPluginTime(BATTERY_TIME_UNDEFINED);
-                    PrefsStorageDelegate.setPluginPower(BATTERY_POWER_UNKNOWN);
-                    PrefsStorageDelegate.setChargeFullTime(BATTERY_TIME_UNDEFINED);
-
                     // decrease schedule
                     --mScheduledCount;
+
                 }
             }, PLUGOUT_POST_OPERATION_DELAY, TimeUnit.SECONDS);
-
 //Log.d("--->plugout op", "!!! schedule");
         }
     }
@@ -328,14 +310,14 @@ public class BatteryLogService extends Service {
 
     private void saveChargeCycleDataSync() {
 
-        // save to local db anyway
-        //Log.d(TAG, "--->save charge log to local db");
-        BatteryLocalDbAdapter dbAdapter = new BatteryLocalDbAdapter(this);
-        long chargeFullTime = PrefsStorageDelegate.getChargeFullTime();
-        long chargeEndTime = (mPlugoutPower == 100 && chargeFullTime != BATTERY_TIME_UNDEFINED)?
-                chargeFullTime : mPlugoutTime;
+        // deduce charge end time
+        long chargeEndTime = (mPlugoutPower == 100 && mChargeFullTime != BATTERY_TIME_UNDEFINED)?
+                mChargeFullTime : mPlugoutTime;
         if (chargeEndTime < mPluginTime) // plugin time or full time is problematic
             chargeEndTime = mPlugoutTime;
+
+        // save to local db anyway
+        BatteryLocalDbAdapter dbAdapter = new BatteryLocalDbAdapter(this);
         dbAdapter.insertLog(mPluginPower, mPluginTime,
                             mPlugoutPower, chargeEndTime,
                             mPlugoutTime, chargeEndTime - mPluginTime, false);
@@ -365,6 +347,10 @@ public class BatteryLogService extends Service {
         } else {
             //Log.w(TAG, "network unavailable!");
         }
+
+        //Log.d("--->save charge", "begin power:"+mPluginPower+", begin time:"+mPluginTime+
+        //        "\nend power:"+mPlugoutPower+", end time:"+chargeEndTime+
+        //        "\nout time:"+mPlugoutTime+", charge duration:"+(chargeEndTime-mPluginTime));
     }
 
     // --- device info
