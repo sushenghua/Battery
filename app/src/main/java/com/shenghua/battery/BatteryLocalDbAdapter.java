@@ -23,20 +23,15 @@ public class BatteryLocalDbAdapter {
         dbHelper = new BatteryLocalDbHelper(context);
     }
 
-    public long insertLog(int beginPower, long beginTime,
-                          int endPower, long endTime,
-                          long plugoutTime, long chargeDuration, boolean uploaded) {
+    public long insertLog(int lastPlug, int plug, int power, long time) {
 
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
         ContentValues contentValues = new ContentValues();
-        contentValues.put(BatteryLocalDbHelper.CHARGE_LOG_BEGIN_POWER, new Integer(beginPower));
-        contentValues.put(BatteryLocalDbHelper.CHARGE_LOG_BEGIN_TIME, new Long(beginTime));
-        contentValues.put(BatteryLocalDbHelper.CHARGE_LOG_END_POWER, new Integer(endPower));
-        contentValues.put(BatteryLocalDbHelper.CHARGE_LOG_END_TIME, new Long(endTime));
-        contentValues.put(BatteryLocalDbHelper.CHARGE_LOG_PLUGOUT_TIME, new Long(plugoutTime));
-        contentValues.put(BatteryLocalDbHelper.CHARGE_LOG_CHARGE_DURATION, new Long(chargeDuration));
-        contentValues.put(BatteryLocalDbHelper.CHARGE_LOG_UPLOADED, new Boolean(uploaded));
+        contentValues.put(BatteryLocalDbHelper.CHARGE_LOG_LAST_PLUG, new Integer(lastPlug));
+        contentValues.put(BatteryLocalDbHelper.CHARGE_LOG_PLUG, new Integer(plug));
+        contentValues.put(BatteryLocalDbHelper.CHARGE_LOG_POWER, new Integer(power));
+        contentValues.put(BatteryLocalDbHelper.CHARGE_LOG_TIME, new Long(time));
 
         long id = db.insert(BatteryLocalDbHelper.CHARGE_LOG_TABLE, null, contentValues);
         db.close();
@@ -47,11 +42,10 @@ public class BatteryLocalDbAdapter {
     public String getAll() {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         String[] columns = {BatteryLocalDbHelper.CHARGE_LOG_UID,
-                            BatteryLocalDbHelper.CHARGE_LOG_BEGIN_POWER,
-                            BatteryLocalDbHelper.CHARGE_LOG_BEGIN_TIME,
-                            BatteryLocalDbHelper.CHARGE_LOG_END_POWER,
-                            BatteryLocalDbHelper.CHARGE_LOG_END_TIME,
-                            BatteryLocalDbHelper.CHARGE_LOG_UPLOADED};
+                            BatteryLocalDbHelper.CHARGE_LOG_LAST_PLUG,
+                            BatteryLocalDbHelper.CHARGE_LOG_PLUG,
+                            BatteryLocalDbHelper.CHARGE_LOG_POWER,
+                            BatteryLocalDbHelper.CHARGE_LOG_TIME};
         Cursor cursor = db.query(BatteryLocalDbHelper.CHARGE_LOG_TABLE, columns,
                 null, null, null, null, null);
 
@@ -61,96 +55,62 @@ public class BatteryLocalDbAdapter {
         StringBuffer sb = new StringBuffer();
         while (cursor.moveToNext()) {
             long id = cursor.getLong(0);
-            int beginPower = cursor.getInt(1);
-            long beginTime = cursor.getLong(2);
-            boolean uploaded = cursor.getInt(5) != 0;
-            sb.append(id + ", " + beginPower + ", " + beginTime + ", " + uploaded + "\n");
+            int lastPlug = cursor.getInt(1);
+            int plug = cursor.getInt(2);
+            int power = cursor.getInt(3);
+            long time = cursor.getLong(4);
+            sb.append(id + ", " + lastPlug + ", " + plug + ", " + power + ", " + time + "\n");
         }
 
         db.close();
         return sb.toString();
     }
 
-    public void markChargeLogAsUploaded(JSONArray logs) {
-        markChargeLogUploadedState(logs, true);
-    }
-
-    public void markChargeLogUploadedState(JSONArray logs, boolean uploaded) {
-
-        SQLiteDatabase db  = dbHelper.getWritableDatabase();
-        try {
-            for (int i = 0; i < logs.length(); ++i) {
-                JSONObject jo = logs.getJSONObject(i);
-                ContentValues contentValues = new ContentValues();
-                contentValues.put(BatteryLocalDbHelper.CHARGE_LOG_UPLOADED, new Boolean(uploaded));
-                String[] whereArgs = {String.valueOf(jo.getLong("lid"))};
-                db.update(BatteryLocalDbHelper.CHARGE_LOG_TABLE, contentValues,
-                          BatteryLocalDbHelper.CHARGE_LOG_UID + " =? ", whereArgs);
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
+    private String plugStr(int plug) {
+        switch (plug) {
+            case -1:
+                return "null";
+            case 10:
+                return "out";
+            case 0:
+                return "ac";
+            case 1:
+                return "usb";
+            case 2:
+                return "wless";
         }
-
-        db.close();
+        return "err";
     }
 
-    public JSONArray getChargeLog(boolean pickUploaded) {
-        return getChargeLog(pickUploaded, 0);
-    }
-
-    public JSONArray getChargeLog(boolean pickUploaded, int queryLimit) {
-
+    public String getLatestChargeLogString(int queryLimit) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-        String uploadedFilter = pickUploaded ? "1" : "0";
         String limit = queryLimit > 0 ? String.valueOf(queryLimit) : null;
-        String[] columns = {BatteryLocalDbHelper.CHARGE_LOG_UID,
-                            BatteryLocalDbHelper.CHARGE_LOG_BEGIN_POWER,
-                            BatteryLocalDbHelper.CHARGE_LOG_BEGIN_TIME,
-                            BatteryLocalDbHelper.CHARGE_LOG_END_POWER,
-                            BatteryLocalDbHelper.CHARGE_LOG_END_TIME,
-                            BatteryLocalDbHelper.CHARGE_LOG_PLUGOUT_TIME,
-                            BatteryLocalDbHelper.CHARGE_LOG_CHARGE_DURATION,
-                            BatteryLocalDbHelper.CHARGE_LOG_UPLOADED};
+        String[] columns = {
+                BatteryLocalDbHelper.CHARGE_LOG_UID,
+                BatteryLocalDbHelper.CHARGE_LOG_LAST_PLUG,
+                BatteryLocalDbHelper.CHARGE_LOG_PLUG,
+                BatteryLocalDbHelper.CHARGE_LOG_POWER,
+                BatteryLocalDbHelper.CHARGE_LOG_TIME
+        };
 
         Cursor cursor = db.query(BatteryLocalDbHelper.CHARGE_LOG_TABLE, columns,
-                BatteryLocalDbHelper.CHARGE_LOG_UPLOADED + " = '" + uploadedFilter + "'",
-                null, null, null, null, limit);
+                null,
+                null, null, null, BatteryLocalDbHelper.CHARGE_LOG_TIME + " DESC", limit);
 
-        //int indexUID = cursor.getColumnIndex(BatteryLocalDbHelper.CHARGE_LOG_UID);
-        //cursor.getInt(cursor.getColumnIndex(BatteryLocalDbHelper.CHARGE_LOG_BEGIN_POWER));
-
-        JSONArray ja = new JSONArray();
-        try {
-            while (cursor.moveToNext()) {
-                // get column value
-                long id = cursor.getLong(0);
-                int beginPower = cursor.getInt(1);
-                long beginTime = cursor.getLong(2);
-                int endPower = cursor.getInt(3);
-                long endTime = cursor.getLong(4);
-                long plugoutTime = cursor.getLong(5);
-                long chargeDuration = cursor.getLong(6);
-                //boolean uploaded = cursor.getInt(7) != 0;
-
-                // create json data
-                JSONObject jo = new JSONObject();
-                jo.put("lid", id);
-                jo.put("bp", beginPower);
-                jo.put("bt", beginTime);
-                jo.put("ep", endPower);
-                jo.put("et", endTime);
-                jo.put("ot", plugoutTime);
-                jo.put("cd", chargeDuration);
-
-                ja.put(jo);
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
+        StringBuffer sb = new StringBuffer();
+        while (cursor.moveToNext()) {
+            long id = cursor.getLong(0);
+            int lastPlug = cursor.getInt(1);
+            int plug = cursor.getInt(2);
+            int power = cursor.getInt(3);
+            long time = cursor.getLong(4);
+//            sb.append(id + ", " + lastPlug + ", " + plug + ", " + power + ", " + time + "\n");
+            sb.append(id + ", " + plugStr(lastPlug) + ", " + plugStr(plug) + ", " + power + ", " + time + "\n");
         }
 
         db.close();
-        return ja;
+        return sb.toString();
     }
 
     public JSONArray getLatestChargeLog(int queryLimit) {
@@ -159,17 +119,15 @@ public class BatteryLocalDbAdapter {
         String limit = queryLimit > 0 ? String.valueOf(queryLimit) : null;
         String[] columns = {
                 BatteryLocalDbHelper.CHARGE_LOG_UID,
-                BatteryLocalDbHelper.CHARGE_LOG_BEGIN_POWER,
-                BatteryLocalDbHelper.CHARGE_LOG_BEGIN_TIME,
-                BatteryLocalDbHelper.CHARGE_LOG_END_POWER,
-                BatteryLocalDbHelper.CHARGE_LOG_END_TIME,
-                BatteryLocalDbHelper.CHARGE_LOG_PLUGOUT_TIME,
-                BatteryLocalDbHelper.CHARGE_LOG_CHARGE_DURATION
+                BatteryLocalDbHelper.CHARGE_LOG_LAST_PLUG,
+                BatteryLocalDbHelper.CHARGE_LOG_PLUG,
+                BatteryLocalDbHelper.CHARGE_LOG_POWER,
+                BatteryLocalDbHelper.CHARGE_LOG_TIME
         };
 
         Cursor cursor = db.query(BatteryLocalDbHelper.CHARGE_LOG_TABLE, columns,
                 null,
-                null, null, null, BatteryLocalDbHelper.CHARGE_LOG_BEGIN_TIME + " DESC", limit);
+                null, null, null, BatteryLocalDbHelper.CHARGE_LOG_TIME + " DESC", limit);
 
         //int indexUID = cursor.getColumnIndex(BatteryLocalDbHelper.CHARGE_LOG_UID);
         //cursor.getInt(cursor.getColumnIndex(BatteryLocalDbHelper.CHARGE_LOG_BEGIN_POWER));
@@ -179,22 +137,18 @@ public class BatteryLocalDbAdapter {
             while (cursor.moveToNext()) {
                 // get column value
                 long id = cursor.getLong(0);
-                int beginPower = cursor.getInt(1);
-                long beginTime = cursor.getLong(2);
-                int endPower = cursor.getInt(3);
-                long endTime = cursor.getLong(4);
-                long plugoutTime = cursor.getLong(5);
-                long chargeDuration = cursor.getLong(6);
+                int lastPlug = cursor.getInt(1);
+                int plug = cursor.getInt(2);
+                int power = cursor.getInt(3);
+                long time = cursor.getLong(4);
 
                 // create json data
                 JSONObject jo = new JSONObject();
                 jo.put("lid", id);
-                jo.put("bp", beginPower);
-                jo.put("bt", beginTime);
-                jo.put("ep", endPower);
-                jo.put("et", endTime);
-                jo.put("ot", plugoutTime);
-                jo.put("cd", chargeDuration);
+                jo.put("lastPlug", lastPlug);
+                jo.put("plug", plug);
+                jo.put("power", power);
+                jo.put("time", time);
 
                 ja.put(jo);
             }
@@ -210,17 +164,14 @@ public class BatteryLocalDbAdapter {
 
         private static final String TAG = "BatteryLocalDbHelper";
 
-        private static final String DATABASE_NAME = "battery.db";
+        private static final String DATABASE_NAME = "batteryDebug.db";
 
-        private static final String CHARGE_LOG_TABLE = "charge_log";
+        private static final String CHARGE_LOG_TABLE = "charge_log_debug";
         private static final String CHARGE_LOG_UID = "id";
-        private static final String CHARGE_LOG_BEGIN_POWER = "begin_power";
-        private static final String CHARGE_LOG_BEGIN_TIME = "begin_time";
-        private static final String CHARGE_LOG_END_POWER = "end_power";
-        private static final String CHARGE_LOG_END_TIME = "end_time";
-        private static final String CHARGE_LOG_PLUGOUT_TIME = "plugout_time";
-        private static final String CHARGE_LOG_CHARGE_DURATION = "charge_duration";
-        private static final String CHARGE_LOG_UPLOADED = "uploaded";
+        private static final String CHARGE_LOG_LAST_PLUG = "last_plug";
+        private static final String CHARGE_LOG_PLUG = "plug";
+        private static final String CHARGE_LOG_POWER = "power";
+        private static final String CHARGE_LOG_TIME = "time";
 
         private static final int DATABASE_VERSION = 1;
 
@@ -234,13 +185,10 @@ public class BatteryLocalDbAdapter {
                 Log.d(TAG, "onCreate called");
                 String charge_log_table = " (" +
                         CHARGE_LOG_UID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                        CHARGE_LOG_BEGIN_POWER + " INTEGER, " +
-                        CHARGE_LOG_BEGIN_TIME + " INTEGER, " +
-                        CHARGE_LOG_END_POWER + " INTEGER, " +
-                        CHARGE_LOG_END_TIME + " INTEGER, " +
-                        CHARGE_LOG_PLUGOUT_TIME + " INTEGER, " +
-                        CHARGE_LOG_CHARGE_DURATION + " INTEGER, " +
-                        CHARGE_LOG_UPLOADED + " BOOLEAN);";
+                        CHARGE_LOG_LAST_PLUG + " INTEGER, " +
+                        CHARGE_LOG_PLUG + " INTEGER, " +
+                        CHARGE_LOG_POWER + " INTEGER, " +
+                        CHARGE_LOG_TIME + " INTEGER);";
 
                 db.execSQL("CREATE TABLE " + CHARGE_LOG_TABLE + charge_log_table);
 

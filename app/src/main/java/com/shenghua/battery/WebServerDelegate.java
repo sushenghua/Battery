@@ -119,15 +119,15 @@ public class WebServerDelegate {
         // pick all local un-uploaded battery charge log, then generate json data, then upload
         int serverResponseCode = SERVER_UNKNOWN_ERROR;
         try {
-            JSONArray logsToUpload;
-            while ((logsToUpload = db.getChargeLog(false, SINGLE_UPLOAD_LOG_COUNT)).length() > 0) {
-                serverResponseCode = uploadJsonArrayData(logsToUpload, true, LOG_UPLOAD_URL);
-                if (serverResponseCode == SERVER_UPLOAD_SUCCEEDED) {
-                    db.markChargeLogAsUploaded(logsToUpload);
-                } else {
-                    break;
-                }
-            }
+//            JSONArray logsToUpload;
+//            while ((logsToUpload = db.getChargeLog(false, SINGLE_UPLOAD_LOG_COUNT)).length() > 0) {
+//                serverResponseCode = uploadJsonArrayData(logsToUpload, true, LOG_UPLOAD_URL);
+//                if (serverResponseCode == SERVER_UPLOAD_SUCCEEDED) {
+//                    db.markChargeLogAsUploaded(logsToUpload);
+//                } else {
+//                    break;
+//                }
+//            }
         } catch (Exception e) {
             e.printStackTrace();
         }

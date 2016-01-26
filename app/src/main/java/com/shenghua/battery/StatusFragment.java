@@ -93,13 +93,16 @@ public class StatusFragment extends Fragment {
     }
 
     private void startBatteryUsageActivity() {
-        Intent powerUsageIntent = new Intent(Intent.ACTION_POWER_USAGE_SUMMARY);
-        ResolveInfo resolveInfo = getContext().getPackageManager().resolveActivity(powerUsageIntent, 0);
-        if(resolveInfo != null){
-            startActivity(powerUsageIntent);
-        } else {
-            Toast.makeText(getContext(), R.string.battery_usage_app_not_found, Toast.LENGTH_LONG).show();
-        }
+//        Intent powerUsageIntent = new Intent(Intent.ACTION_POWER_USAGE_SUMMARY);
+//        ResolveInfo resolveInfo = getContext().getPackageManager().resolveActivity(powerUsageIntent, 0);
+//        if(resolveInfo != null){
+//            startActivity(powerUsageIntent);
+//        } else {
+//            Toast.makeText(getContext(), R.string.battery_usage_app_not_found, Toast.LENGTH_LONG).show();
+//        }
+
+        Intent intent = new Intent(getContext(), DebugActivity.class);
+        startActivity(intent);
     }
 
     private void initHardwareInfoView(View rootView) {
