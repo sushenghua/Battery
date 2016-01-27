@@ -17,6 +17,12 @@ public class DebugActivity extends AppCompatActivity {
 
         BatteryLocalDbAdapter dbAdapter = new BatteryLocalDbAdapter(this);
 
-        debugText.setText(dbAdapter.getLatestChargeLogString(10));
+        debugText.setText(dbAdapter.getLatestChargeLogString(100));
+
+//        StringBuffer sb = new StringBuffer();
+//        for (int i = 0; i < 50; ++i) {
+//            sb.append("aa\n");
+//        }
+//        debugText.setText(sb.toString());
     }
 }

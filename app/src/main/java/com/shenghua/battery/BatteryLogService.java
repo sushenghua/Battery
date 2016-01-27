@@ -167,6 +167,10 @@ public class BatteryLogService extends Service {
                     newChargeType = BATTERY_AC_CHARGE;
                 } else if (chargePlug == BatteryManager.BATTERY_PLUGGED_WIRELESS) {
                     newChargeType = BATTERY_WIRELESS_CHARGE;
+                } else if (chargePlug == 0) {
+                    newChargeType = BATTERY_NO_CHARGE; // on battery
+                } else {
+                    newChargeType = BATTERY_UNDEFINED_CHARGESTATUS;
                 }
             } else {
                 newChargeType = BATTERY_NO_CHARGE;
