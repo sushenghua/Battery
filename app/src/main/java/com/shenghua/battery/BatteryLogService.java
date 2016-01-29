@@ -158,7 +158,8 @@ public class BatteryLogService extends Service {
             boolean isFull = status == BatteryManager.BATTERY_STATUS_FULL;
             boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING || isFull;
 
-            int newChargeType = BATTERY_UNDEFINED_CHARGESTATUS;
+            int currentChargeType = PrefsStorageDelegate.getChargeType();
+            int newChargeType;// = BATTERY_UNDEFINED_CHARGESTATUS;
             if (isCharging) {
                 int chargePlug = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
                 if (chargePlug == BatteryManager.BATTERY_PLUGGED_USB) {
@@ -170,7 +171,11 @@ public class BatteryLogService extends Service {
                 } else if (chargePlug == 0) {
                     newChargeType = BATTERY_NO_CHARGE; // on battery
                 } else {
-                    newChargeType = BATTERY_UNDEFINED_CHARGESTATUS;
+                    if (currentChargeType == BATTERY_AC_CHARGE) {
+                        newChargeType = currentChargeType;
+                    } else {
+                        newChargeType = BATTERY_UNDEFINED_CHARGESTATUS;
+                    }
                 }
             } else {
                 newChargeType = BATTERY_NO_CHARGE;
@@ -180,7 +185,7 @@ public class BatteryLogService extends Service {
             long timeNow = (long)(System.currentTimeMillis() / 1000.0);
 
             checkChargeFull(mCurrentPower, timeNow, false);
-            int currentChargeType = PrefsStorageDelegate.getChargeType();
+//            int currentChargeType = PrefsStorageDelegate.getChargeType();
 //Log.d("--->", "current charge type: "+currentChargeType+",  new charge type: "+newChargeType);
             if (newChargeType != currentChargeType) {
 
